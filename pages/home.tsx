@@ -5,9 +5,10 @@ import MainLayout from '../layouts/MainLayout';
 import Button from '../components/Button';
 import {useNavigation} from '@react-navigation/native';
 import {prepareSrs} from '../lib/noir';
+import {PlacesListNavigationProp} from '../types/navigation';
 
 export default function Home() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<PlacesListNavigationProp>();
 
   useEffect(() => {
     // Load the local SRS (if present in resources) in internal storage
@@ -35,14 +36,14 @@ export default function Home() {
         }}>
         <Button
           onPress={() => {
-            navigation.navigate('PostReview');
+            navigation.navigate('PlacesList');
           }}>
           <Text
             style={{
               color: 'white',
               fontWeight: '700',
             }}>
-            Post a Review
+            Explore Famous Places
           </Text>
         </Button>
 

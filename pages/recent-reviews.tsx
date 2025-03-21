@@ -13,13 +13,12 @@ import {supabase} from '../lib/supabase';
 import Button from '../components/Button';
 import Geolocation from '@react-native-community/geolocation';
 
-// Screen width to calculate card width
 const {width} = Dimensions.get('window');
-const cardWidth = width - 40; // Full width minus padding
+const cardWidth = width - 40;
 
 interface Review {
   id: string;
-  venue_id: string;
+  place_id: string;
   rating: number;
   review_text: string;
   location_proof: string;
@@ -196,7 +195,7 @@ export default function RecentReviews() {
               <View style={styles.reviewHeader}>
                 <View>
                   <Text style={styles.venueName}>
-                    Venue #{review.venue_id.substring(0, 8)}
+                    Venue #{review.place_id.substring(0, 8)}
                   </Text>
                   <Text style={styles.timeAgo}>
                     {getTimeAgo(review.created_at)}

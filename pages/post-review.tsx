@@ -1,10 +1,18 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState, useEffect} from 'react';
-import {Text, Alert, StyleSheet, TextInput, ScrollView} from 'react-native';
+import {
+  Text,
+  Alert,
+  StyleSheet,
+  TextInput,
+  ScrollView,
+  View,
+} from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import {supabase} from '../lib/supabase';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {
   clearCircuit,
   extractProof,
@@ -14,14 +22,11 @@ import {
 import circuit from '../circuits/product/target/product.json';
 import {formatProof} from '../lib';
 import {Circuit} from '../types';
-
-const VENUE_ID = 'ce7ac2a1-4d6c-489c-a92f-7fa414372007';
+import {PlacesListNavigationProp} from '../types/navigation';
 
 export default function PostReview() {
-  const [venueName, setVenueName] = useState('');
   const [rating, setRating] = useState('');
   const [reviewText, setReviewText] = useState('');
-  //TODO: set userid accordingly
   const [userId, setUserId] = useState(
     'anonymous-' + Math.random().toString(36).substring(2, 9),
   );
@@ -34,6 +39,15 @@ export default function PostReview() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const navigation = useNavigation<PlacesListNavigationProp>();
+  const route = useRoute();
+  const {placeId, placeName, latitude, longitude} = route.params as {
+    placeId: string;
+    placeName: string;
+    latitude: number;
+    longitude: number;
+  };
+
   useEffect(() => {
     setupCircuit(circuit as unknown as Circuit).then(id => setCircuitId(id));
     return () => {
@@ -44,24 +58,20 @@ export default function PostReview() {
   }, []);
 
   const generateLocationProof = async () => {
-    if (!venueName) {
-      Alert.alert('Missing venue', 'Please enter a venue name first');
-      return;
-    }
-
     setGeneratingProof(true);
     setError(null);
 
     try {
-      // TODO: Need to replace "factors" will location data
-      const venueId = venueName.length * 2; // Just a sample calculation
-      const userFactor = userId.length * 3; // Another sample value
+      // In a real app, we would use actual location data and a ZK circuit for location verification
+      // For now, we'll simulate this with the product circuit
+      const latFactor = Math.round(Math.abs(latitude) * 100);
+      const longFactor = Math.round(Math.abs(longitude) * 100);
 
       const {proofWithPublicInputs} = await generateProof(
         {
-          a: venueId,
-          b: userFactor,
-          result: venueId * userFactor,
+          a: latFactor,
+          b: longFactor,
+          result: latFactor * longFactor,
         },
         circuitId!,
       );
@@ -86,7 +96,7 @@ export default function PostReview() {
   };
 
   const submitReview = async () => {
-    if (!venueName || !rating || !reviewText || !locationProof) {
+    if (!rating || !reviewText || !locationProof) {
       Alert.alert(
         'Missing information',
         'Please fill in all fields and verify your location before submitting',
@@ -107,17 +117,17 @@ export default function PostReview() {
     setError(null);
 
     try {
-      // TODO: We will need to have some venue table to have the venue id
-
       const {data, error: supabaseError} = await supabase
         .from('reviews')
         .insert([
           {
-            venue_id: VENUE_ID,
+            place_id: placeId,
             rating: parseInt(rating),
             review_text: reviewText,
             location_proof: locationProof,
             user_id: userId,
+            upvotes: 0,
+            downvotes: 0,
           },
         ])
         .select();
@@ -133,12 +143,7 @@ export default function PostReview() {
           {
             text: 'OK',
             onPress: () => {
-              // Reset the form
-              setVenueName('');
-              setRating('');
-              setReviewText('');
-              setLocationProof('');
-              setProofGenerated(false);
+              navigation.navigate('RecentReviews');
             },
           },
         ],
@@ -157,14 +162,12 @@ export default function PostReview() {
       <ScrollView>
         <Text style={styles.title}>Post a Review</Text>
 
-        <Text style={styles.sectionTitle}>Venue Information</Text>
-        <Text style={styles.label}>Venue Name</Text>
-        <Input
-          value={venueName}
-          placeholder="Enter venue name"
-          onChangeText={setVenueName}
-          style={styles.input}
-        />
+        <View style={styles.placeInfoContainer}>
+          <Text style={styles.placeName}>{placeName}</Text>
+          <Text style={styles.placeCoordinates}>
+            Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+          </Text>
+        </View>
 
         <Text style={styles.label}>Rating (1-5)</Text>
         <Input
@@ -188,7 +191,7 @@ export default function PostReview() {
 
         {!proofGenerated ? (
           <Button
-            disabled={generatingProof || !circuitId || !venueName}
+            disabled={generatingProof || !circuitId}
             onPress={generateLocationProof}
             style={styles.button}>
             <Text style={styles.buttonText}>
@@ -231,11 +234,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  sectionTitle: {
+  placeInfoContainer: {
+    backgroundColor: '#F8FAFC',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  placeName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#151628',
-    marginBottom: 10,
+    color: '#1E293B',
+    marginBottom: 5,
+  },
+  placeCoordinates: {
+    fontSize: 14,
+    color: '#64748B',
   },
   label: {
     fontSize: 16,

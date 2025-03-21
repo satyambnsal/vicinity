@@ -10,8 +10,11 @@ import Secp256r1Proof from './pages/secp256r1-proof';
 import SupabaseTest from './pages/supabase-test';
 import PostReview from './pages/post-review';
 import RecentReviews from './pages/recent-reviews';
+import PlacesList from './pages/places-list';
+import PlaceDetail from './pages/place-detail';
+import {RootStackParamList} from './types/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function App(): React.JSX.Element {
   return (
@@ -33,6 +36,8 @@ function App(): React.JSX.Element {
           />
           <Stack.Screen name="PostReview" component={PostReview} />
           <Stack.Screen name="RecentReviews" component={RecentReviews} />
+          <Stack.Screen name="PlacesList" component={PlacesList} />
+          <Stack.Screen name="PlaceDetail" component={PlaceDetail} />
         </Stack.Navigator>
       </NavigationContainer>
     </TamaguiProvider>
