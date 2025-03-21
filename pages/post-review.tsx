@@ -41,8 +41,8 @@ export default function PostReview() {
 
   const navigation = useNavigation<PlacesListNavigationProp>();
   const route = useRoute();
-  const {placeId, placeName, latitude, longitude} = route.params as {
-    placeId: string;
+  const {place_id, placeName, latitude, longitude} = route.params as {
+    place_id: string;
     placeName: string;
     latitude: number;
     longitude: number;
@@ -121,7 +121,7 @@ export default function PostReview() {
         .from('reviews')
         .insert([
           {
-            place_id: placeId,
+            place_id: place_id,
             rating: parseInt(rating),
             review_text: reviewText,
             location_proof: locationProof,
