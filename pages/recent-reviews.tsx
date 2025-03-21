@@ -6,12 +6,12 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
-  Image,
   Dimensions,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import {supabase} from '../lib/supabase';
 import Button from '../components/Button';
+import Geolocation from '@react-native-community/geolocation';
 
 // Screen width to calculate card width
 const {width} = Dimensions.get('window');
@@ -39,6 +39,20 @@ export default function RecentReviews() {
 
   useEffect(() => {
     fetchReviews();
+    Geolocation.requestAuthorization(
+      () => {
+        console.log('Geolocation authorization successful');
+        Geolocation.getCurrentPosition(info => console.log(info));
+      },
+      error => {
+        console.log(
+          'Geolocation authorization failed with error',
+          error.message,
+          error.code,
+          error.PERMISSION_DENIED,
+        );
+      },
+    );
   }, []);
 
   const fetchReviews = async () => {
@@ -145,12 +159,6 @@ export default function RecentReviews() {
       );
     }
     return <View style={{flexDirection: 'row'}}>{stars}</View>;
-  };
-
-  // Format proof for display
-  const formatProofPreview = (proof: string) => {
-    if (!proof) return 'No proof available';
-    return proof.substring(0, 30) + '...';
   };
 
   return (
