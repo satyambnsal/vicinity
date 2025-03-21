@@ -91,32 +91,39 @@ export default function PlacesList() {
   );
 
   return (
-    <MainLayout canGoBack={true}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Famous Places</Text>
-        <TouchableOpacity onPress={fetchPlaces}>
-          <Text style={styles.refreshText}>Refresh</Text>
-        </TouchableOpacity>
-      </View>
-
-      {loading ? (
-        <ActivityIndicator size="large" color="#3B82F6" style={styles.loader} />
-      ) : error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchPlaces}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+    <MainLayout canGoBack={true} disableScroll={true}>
+      <View style={{flex: 1}}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Famous Places</Text>
+          <TouchableOpacity onPress={fetchPlaces}>
+            <Text style={styles.refreshText}>Refresh</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <FlatList
-          data={places}
-          renderItem={renderPlaceCard}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color="#3B82F6"
+            style={styles.loader}
+          />
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={fetchPlaces}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={places}
+            renderItem={renderPlaceCard}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            style={{flex: 1}}
+          />
+        )}
+      </View>
     </MainLayout>
   );
 }
