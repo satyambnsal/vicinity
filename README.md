@@ -42,6 +42,7 @@ Our primary Noir circuit proves a user was physically present at specific coordi
 - The user's exact location
 - The precise time of their visit
 - Any identifying information
+-
 
 This enables trustworthy, location-verified content while maintaining complete user privacy.
 
