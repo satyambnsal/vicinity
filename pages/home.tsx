@@ -25,15 +25,40 @@ export default function Home() {
           textAlign: 'center',
           color: '#6B7280',
         }}>
-        This application shows you how to use Noir to generate ZK proofs
-        natively in iOS and Android with React Native.{'\n\n'}
-        Click on the button below to try out the demo and generate your first ZK
-        proof straight from your phone!
+        Vicinity is a privacy focused review platform that enables users to
+        anonymously share experiences at real-world locations while
+        cryptographically proving they were actually there.
       </Text>
       <View
         style={{
           gap: 20,
         }}>
+        <Button
+          onPress={() => {
+            navigation.navigate('PostReview');
+          }}>
+          <Text
+            style={{
+              color: 'white',
+              fontWeight: '700',
+            }}>
+            Post a Review
+          </Text>
+        </Button>
+
+        <Button
+          onPress={() => {
+            navigation.navigate('RecentReviews');
+          }}>
+          <Text
+            style={{
+              color: 'white',
+              fontWeight: '700',
+            }}>
+            View Recent Reviews
+          </Text>
+        </Button>
+
         <Button
           onPress={() => {
             navigation.navigate('ProductProof');
@@ -68,6 +93,18 @@ export default function Home() {
               fontWeight: '700',
             }}>
             Proof of secp256r1
+          </Text>
+        </Button>
+        <Button
+          onPress={() => {
+            navigation.navigate('SupabaseTest');
+          }}>
+          <Text
+            style={{
+              color: 'white',
+              fontWeight: '700',
+            }}>
+            Test Supabase Connection
           </Text>
         </Button>
       </View>

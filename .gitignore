@@ -86,3 +86,4 @@ yarn-error.log
 **/*Cargo.lock
 /scripts/**/target/**
 /android/app/libs
+private.md

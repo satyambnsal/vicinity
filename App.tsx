@@ -7,6 +7,9 @@ import {NavigationContainer} from '@react-navigation/native';
 import ProductProof from './pages/product-proof';
 import PedersenProof from './pages/pedersen-proof';
 import Secp256r1Proof from './pages/secp256r1-proof';
+import SupabaseTest from './pages/supabase-test';
+import PostReview from './pages/post-review';
+import RecentReviews from './pages/recent-reviews';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +26,13 @@ function App(): React.JSX.Element {
           <Stack.Screen name="ProductProof" component={ProductProof} />
           <Stack.Screen name="PedersenProof" component={PedersenProof} />
           <Stack.Screen name="Secp256r1Proof" component={Secp256r1Proof} />
+          <Stack.Screen
+            name="SupabaseTest"
+            component={SupabaseTest}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen name="PostReview" component={PostReview} />
+          <Stack.Screen name="RecentReviews" component={RecentReviews} />
         </Stack.Navigator>
       </NavigationContainer>
     </TamaguiProvider>

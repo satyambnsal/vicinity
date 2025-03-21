@@ -22,13 +22,13 @@ export default function MainLayout({
   return (
     <SafeAreaView
       style={{
-        backgroundColor: '#F6F8FE',
+        backgroundColor: '#F5F7FA',
       }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F6F8FE" />
+      <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{
-          backgroundColor: '#F6F8FE',
+          backgroundColor: '#F5F7FA',
           height: '100%',
         }}>
         <View
@@ -57,7 +57,7 @@ export default function MainLayout({
                   }}
                 />
                 <Text
-                  style={{color: '#195AFE', fontSize: 14, fontWeight: '700'}}>
+                  style={{color: '#3B82F6', fontSize: 14, fontWeight: '700'}}>
                   Back
                 </Text>
               </TouchableOpacity>
@@ -78,13 +78,21 @@ export default function MainLayout({
           <Text
             style={{
               textAlign: 'center',
-              fontSize: 22,
+              fontSize: 24,
               fontWeight: 'bold',
-              // Purple
-              color: '#151628',
+              color: '#1E293B',
+              marginBottom: 8,
+            }}>
+            Vicinity
+          </Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              fontSize: 14,
+              color: '#64748B',
               marginBottom: 30,
             }}>
-            Noir React Native Starter
+            Privacy-Preserving Location-Verified Reviews
           </Text>
           {children}
         </View>
