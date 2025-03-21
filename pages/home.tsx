@@ -1,23 +1,53 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import Button from '../components/Button';
 import {useNavigation} from '@react-navigation/native';
 import {prepareSrs} from '../lib/noir';
 import {PlacesListNavigationProp} from '../types/navigation';
+import * as AppAttest from 'react-native-ios-appattest';
+import {Buffer} from 'react-native-buffer';
 
 export default function Home() {
   const navigation = useNavigation<PlacesListNavigationProp>();
+  const [attestSupported, setAttestSupported] = useState<boolean>(false);
 
   useEffect(() => {
     // Load the local SRS (if present in resources) in internal storage
     // Only for Android, will be skipped on iOS
+    AppAttest.attestationSupported().then(async supported => {
+      console.log('Supported', supported);
+      setAttestSupported(supported);
+      if (supported) {
+        const newKeyId = await AppAttest.generateKeys();
+        const challengeHashBase64 = Buffer.from('abc123').toString('base64');
+        try {
+          const attestationBase64 = await AppAttest.attestKeys(
+            newKeyId,
+            challengeHashBase64,
+          );
+          console.log('Attestation created', attestationBase64);
+        } catch (error) {
+          console.log('attest key error', error);
+        }
+      }
+    });
     prepareSrs();
   }, []);
 
   return (
     <MainLayout>
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: '500',
+          marginBottom: 20,
+          textAlign: 'center',
+          color: '#6B7280',
+        }}>
+        {attestSupported ? 'Attest support' : 'attest not suo=pport'}
+      </Text>
       <Text
         style={{
           fontSize: 16,
