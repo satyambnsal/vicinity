@@ -73,41 +73,61 @@ export const getUserLocationAndDistance = (
 /**
  * Prompt user to open app settings to enable location permissions
  */
-export const promptOpenSettings = () => {
-  Alert.alert(
-    'Location Permission Required',
-    "Vicinity needs location access to verify you're at the venue. Would you like to open settings to enable location permissions?",
-    [
-      {text: 'Cancel', style: 'cancel'},
-      {
-        text: 'Open Settings',
-        onPress: () => {
+export const promptOpenSettings = (locationServicesDisabled = false) => {
+  const title = locationServicesDisabled
+    ? 'Location Services Disabled'
+    : 'Location Permission Required';
+
+  const message = locationServicesDisabled
+    ? 'Vicinity needs location services to be enabled. Would you like to open system settings to enable location services?'
+    : "Vicinity needs location access to verify you're at the venue. Would you like to open settings to enable location permissions?";
+
+  Alert.alert(title, message, [
+    {text: 'Cancel', style: 'cancel'},
+    {
+      text: 'Open Settings',
+      onPress: () => {
+        if (locationServicesDisabled) {
+          if (Platform.OS === 'ios') {
+            Linking.openURL('App-Prefs:Privacy&path=LOCATION');
+          } else {
+            Linking.openSettings();
+          }
+        } else {
           if (Platform.OS === 'ios') {
             Linking.openURL('app-settings:');
           } else {
             Linking.openSettings();
           }
-        },
+        }
       },
-    ],
-  );
+    },
+  ]);
 };
 
 /**
  * Request location permission explicitly
  * @returns Promise resolving to boolean indicating if permission was granted
  */
-export const requestLocationPermission = (): Promise<boolean> => {
+export const requestLocationPermission = (): Promise<{
+  granted: boolean;
+  locationServicesEnabled: boolean;
+}> => {
   return new Promise(resolve => {
-    Geolocation.requestAuthorization(
+    Geolocation.getCurrentPosition(
       () => {
-        console.log('Location permission granted');
-        resolve(true);
+        resolve({granted: true, locationServicesEnabled: true});
       },
       error => {
-        console.log('Location permission denied', error);
-        resolve(false);
+        if (error.code === error.PERMISSION_DENIED) {
+          resolve({granted: false, locationServicesEnabled: true});
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          resolve({granted: false, locationServicesEnabled: false});
+        } else {
+          resolve({granted: false, locationServicesEnabled: true});
+        }
       },
+      {enableHighAccuracy: true, timeout: 5000, maximumAge: 10000},
     );
   });
 };

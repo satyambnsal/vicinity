@@ -19,6 +19,7 @@ import {PlacesListNavigationProp} from '../types/navigation';
 import {
   getUserLocationAndDistance,
   promptOpenSettings,
+  requestLocationPermission,
 } from '../lib/location-utils';
 
 // Get screen dimensions for responsive design
@@ -245,6 +246,22 @@ export default function PlaceDetail() {
     }
   };
 
+  const retryLocationCheck = async () => {
+    const permissionResult = await requestLocationPermission();
+
+    if (permissionResult.granted) {
+      setProximityInfo(prev => ({
+        ...prev,
+        checked: false,
+        permissionDenied: false,
+      }));
+      checkUserLocation();
+    } else {
+      // Either permission denied or location services are off
+      promptOpenSettings(!permissionResult.locationServicesEnabled);
+    }
+  };
+
   const toggleExpandReview = (reviewId: string) => {
     setExpandedReviews(prevExpanded => {
       const newExpanded = new Set(prevExpanded);
@@ -373,9 +390,9 @@ export default function PlaceDetail() {
                 <Text style={[styles.locationStatusText, {color: '#D97706'}]}>
                   ⚠️ {proximityInfo.errorMessage}
                 </Text>
-                {/* <TouchableOpacity onPress={retryLocationCheck}>
+                <TouchableOpacity onPress={retryLocationCheck}>
                   <Text style={styles.retryLocationText}>Enable location</Text>
-                </TouchableOpacity> */}
+                </TouchableOpacity>
               </View>
             )}
 
