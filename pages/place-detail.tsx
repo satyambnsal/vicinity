@@ -9,12 +9,15 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import {supabase} from '../lib/supabase';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Button from '../components/Button';
 import {PlacesListNavigationProp} from '../types/navigation';
+import Geolocation from '@react-native-community/geolocation';
+import {calculateDistance} from '../lib';
 
 // Get screen dimensions for responsive design
 const {width} = Dimensions.get('window');
@@ -77,6 +80,7 @@ export const getTimeAgo = (dateString: string) => {
   const years = Math.floor(months / 12);
   return `${years} year${years !== 1 ? 's' : ''} ago`;
 };
+
 export default function PlaceDetail() {
   const [place, setPlace] = useState<Place | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -85,6 +89,16 @@ export default function PlaceDetail() {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(
     new Set(),
   );
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [proximityInfo, setProximityInfo] = useState<{
+    isNearby: boolean;
+    distanceInKm: number;
+    checked: boolean;
+  }>({
+    isNearby: false,
+    distanceInKm: 0,
+    checked: false,
+  });
 
   const navigation = useNavigation<PlacesListNavigationProp>();
   const route = useRoute();
@@ -95,13 +109,61 @@ export default function PlaceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place_id]);
 
+  useEffect(() => {
+    if (place && !proximityInfo.checked && !locationLoading) {
+      checkUserLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place]);
+
+  const checkUserLocation = () => {
+    if (!place) {
+      return;
+    }
+
+    setLocationLoading(true);
+
+    Geolocation.getCurrentPosition(
+      info => {
+        const {isNearby, distanceInKm} = calculateDistance(
+          {
+            lat: place.latitude,
+            long: place.longitude,
+          },
+          {
+            lat: info.coords.latitude,
+            long: info.coords.longitude,
+          },
+          1,
+        );
+
+        setProximityInfo({
+          isNearby,
+          distanceInKm,
+          checked: true,
+        });
+
+        setLocationLoading(false);
+      },
+      error => {
+        console.error('Error getting current position:', error);
+        setLocationLoading(false);
+        setProximityInfo(prev => ({...prev, checked: true}));
+        Alert.alert(
+          'Location Error',
+          'Unable to determine your current location. Location verification is required to post reviews.',
+        );
+      },
+      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
+    );
+  };
+
   const fetchPlaceDetails = async () => {
     setLoading(true);
     setError(null);
 
     try {
       // Fetch place details
-      console.log('FETCHING PLACE OF PLACE ID', place_id);
       const {data: placeData, error: placeError} = await supabase
         .from('places')
         .select('*')
@@ -131,7 +193,30 @@ export default function PlaceDetail() {
   };
 
   const navigateToPostReview = () => {
-    if (place) {
+    if (!place) {
+      return;
+    }
+
+    if (!proximityInfo.checked) {
+      checkUserLocation();
+      return;
+    }
+
+    if (!proximityInfo.isNearby) {
+      Alert.alert(
+        'Location Verification Failed',
+        `You appear to be ${proximityInfo.distanceInKm.toFixed(
+          2,
+        )}km away from this location. You must be at the venue to post a verified review.`,
+        [
+          {
+            text: 'OK',
+            style: 'default',
+          },
+        ],
+      );
+    } else {
+      // User is nearby, proceed with review
       navigation.navigate('PostReview', {
         place_id: place.place_id,
         placeName: place.name,
@@ -186,8 +271,6 @@ export default function PlaceDetail() {
     }
   };
 
-  // Calculate time ago from date
-
   // Render star rating
   const renderRating = (rating: number) => {
     const stars = [];
@@ -239,6 +322,45 @@ export default function PlaceDetail() {
             <Text style={styles.placeName}>{place.name}</Text>
             <Text style={styles.placeCategory}>{place.category}</Text>
             <Text style={styles.placeAddress}>{place.address}</Text>
+
+            {proximityInfo.checked && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {
+                    backgroundColor: proximityInfo.isNearby
+                      ? '#ECFDF5'
+                      : '#FEF2F2',
+                  },
+                ]}>
+                <Text
+                  style={[
+                    styles.locationStatusText,
+                    {color: proximityInfo.isNearby ? '#059669' : '#EF4444'},
+                  ]}>
+                  {proximityInfo.isNearby
+                    ? '✓ You are at this location'
+                    : `You are ${proximityInfo.distanceInKm.toFixed(2)}km away`}
+                </Text>
+              </View>
+            )}
+
+            {locationLoading && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {backgroundColor: '#F0F9FF'},
+                ]}>
+                <ActivityIndicator
+                  size="small"
+                  color="#3B82F6"
+                  style={{marginRight: 8}}
+                />
+                <Text style={[styles.locationStatusText, {color: '#0369A1'}]}>
+                  Checking your location...
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -252,7 +374,10 @@ export default function PlaceDetail() {
         <View style={styles.reviewsSection}>
           <View style={styles.reviewsHeader}>
             <Text style={styles.reviewsTitle}>Reviews ({reviews.length})</Text>
-            <Button onPress={navigateToPostReview} style={styles.reviewButton}>
+            <Button
+              onPress={navigateToPostReview}
+              style={styles.reviewButton}
+              disabled={locationLoading}>
               <Text style={styles.buttonText}>Post a Review</Text>
             </Button>
           </View>
@@ -376,6 +501,18 @@ const styles = StyleSheet.create({
   placeAddress: {
     fontSize: 14,
     color: '#64748B',
+    marginBottom: 10,
+  },
+  locationStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  locationStatusText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   descriptionContainer: {
     marginBottom: 20,
