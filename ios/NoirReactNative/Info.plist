@@ -37,6 +37,8 @@
 	<string>The app needs to access user location to allow user to post reviews for properties </string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>The app needs to access user location to allow user to post reviews for properties </string>
+	<key>NSHighMemoryUsageDescription</key>
+	<string>This app requires more memory for processing complex cryptographic operations</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

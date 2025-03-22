@@ -19,10 +19,11 @@ import {
   generateProof,
   setupCircuit,
 } from '../lib/noir';
-import circuit from '../circuits/product/target/product.json';
+import circuit from '../circuits/vicinity/target/vicinity.json';
 import {formatProof} from '../lib';
 import {Circuit} from '../types';
 import {PlacesListNavigationProp} from '../types/navigation';
+import {getUserLocationAndDistance} from '../lib/location-utils';
 
 export default function PostReview() {
   const [rating, setRating] = useState('');
@@ -47,6 +48,20 @@ export default function PostReview() {
     latitude: number;
     longitude: number;
   };
+  const [locationLoading, setLocationLoading] = useState(false);
+
+  const [proximityInfo, setProximityInfo] = useState<{
+    isNearby: boolean;
+    distanceInKm: number;
+    checked: boolean;
+    permissionDenied: boolean;
+    errorMessage?: string;
+  }>({
+    isNearby: false,
+    distanceInKm: 0,
+    checked: false,
+    permissionDenied: false,
+  });
 
   useEffect(() => {
     setupCircuit(circuit as unknown as Circuit).then(id => setCircuitId(id));
@@ -56,6 +71,64 @@ export default function PostReview() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (place_id && !proximityInfo.checked && !locationLoading) {
+      checkUserLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place_id]);
+
+  const checkUserLocation = async () => {
+    if (!place_id) {
+      return;
+    }
+
+    setLocationLoading(true);
+
+    try {
+      const locationResult = await getUserLocationAndDistance(
+        latitude,
+        longitude,
+      );
+
+      if (locationResult.status === 'success' && locationResult.distanceInfo) {
+        setProximityInfo({
+          isNearby: locationResult.distanceInfo.isNearby,
+          distanceInKm: locationResult.distanceInfo.distanceInKm,
+          checked: true,
+          permissionDenied: false,
+        });
+      } else if (locationResult.status === 'permission_denied') {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: true,
+          errorMessage: locationResult.message,
+        });
+      } else {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: false,
+          errorMessage: locationResult.message,
+        });
+      }
+    } catch (err) {
+      console.error('Error checking location:', err);
+      setProximityInfo({
+        isNearby: false,
+        distanceInKm: 0,
+        checked: true,
+        permissionDenied: false,
+        errorMessage: 'Failed to check your location',
+      });
+    } finally {
+      setLocationLoading(false);
+    }
+  };
 
   const generateLocationProof = async () => {
     setGeneratingProof(true);
@@ -67,14 +140,49 @@ export default function PostReview() {
       const latFactor = Math.round(Math.abs(latitude) * 100);
       const longFactor = Math.round(Math.abs(longitude) * 100);
 
+      console.log('GENERATING PROOF');
+      // const {proofWithPublicInputs} = await generateProof(
+      //   {
+      //     user_lat: Math.round((40714491 + 90) * 1e6),
+      //     user_lon: Math.round((-74001337 + 90) * 1e6),
+      //     landmark_lat: Math.round((40714403 + 90) * 1e6),
+      //     landmark_lon: Math.round((-74001508 + 90) * 1e6),
+      //   },
+      //   circuitId!,
+      // );
+
+      const user_lat = Math.round((40.714491 + 90) * 1e6);
+      const user_lon = Math.round((-74.001337 + 90) * 1e6);
+      const landmark_lat = Math.round((40.714403 + 90) * 1e6);
+      const landmark_lon = Math.round((-74.001508 + 90) * 1e6);
+      console.log('locations', {
+        user_lat,
+        user_lon,
+        landmark_lat,
+        landmark_lon,
+      });
+
       const {proofWithPublicInputs} = await generateProof(
         {
-          a: latFactor,
-          b: longFactor,
-          result: latFactor * longFactor,
+          user_lat,
+          user_lon,
+          landmark_lat,
+          landmark_lon,
         },
         circuitId!,
       );
+
+      // const {proofWithPublicInputs} = await generateProof(
+      //   {
+      //     landmark_lat: Number(40714491),
+      //     landmark_lon: Number(-74001337),
+      //     user_lat: Number(40714403),
+      //     user_lon: Number(-74001508),
+      //   },
+      //   circuitId!,
+      // );
+
+      console.log('EXTRACTING PROOF');
 
       const proof = extractProof(
         circuit as unknown as Circuit,
@@ -160,7 +268,7 @@ export default function PostReview() {
   return (
     <MainLayout canGoBack={true}>
       <ScrollView>
-        <Text style={styles.title}>Post a Review</Text>
+        <Text style={styles.title}>Post a Review 1</Text>
 
         <View style={styles.placeInfoContainer}>
           <Text style={styles.placeName}>{placeName}</Text>
@@ -204,9 +312,7 @@ export default function PostReview() {
           <>
             <Text style={styles.verifiedText}>✓ Location Verified!</Text>
             {locationProof && (
-              <Text style={styles.proofText}>
-                {formatProof(locationProof.substring(0, 50) + '...')}
-              </Text>
+              <Text style={styles.proofText}>{formatProof(locationProof)}</Text>
             )}
 
             <Button
@@ -302,3 +408,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+function adjustCoordinates(lat: number, lon: number) {
+  return {
+    latAdj: Math.round((lat + 90) * 1e6),
+    lonAdj: Math.round((lon + 180) * 1e6),
+  };
+}
