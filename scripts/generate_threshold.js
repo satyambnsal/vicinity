@@ -16,4 +16,4 @@ function calculateThresholdCheck(meters) {
 }
 
 // Example usage for 50 meter threshold:
-console.log(calculateThresholdCheck(100)); // Output: 202500 (matches original example)
+console.log(calculateThresholdCheck(1000)); // Output: 80874049 (matches original example)

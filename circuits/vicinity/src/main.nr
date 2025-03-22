@@ -5,6 +5,7 @@ fn main(
     // Landmark's location (public)
     landmark_lat: pub Field,
     landmark_lon: pub Field,
+    max_distance: pub Field,
 ) {
     // Calculate the differences in scaled coordinates
     let delta_lat = user_lat - landmark_lat;
@@ -19,5 +20,5 @@ fn main(
 
     // Constrain the sum to be within the threshold (scaled 50 meters)
     // Threshold is 202,500 which is 450^2 (0.00045 degrees * 1e6 scaling)
-    assert(sum_squares as i64 <= 808201, "User is too far from the landmark");
+    assert(sum_squares as i64 <= max_distance as i64, "User is too far from the landmark");
 }

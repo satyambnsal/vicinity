@@ -48,6 +48,13 @@ export default function PostReview() {
     latitude: number;
     longitude: number;
   };
+  const [currentUserLatitude, setCurrentUserLatitude] = useState<
+    Number | undefined
+  >(undefined);
+  const [currentUserLongitude, setCurrentUserLongitude] = useState<
+    Number | undefined
+  >(undefined);
+
   const [locationLoading, setLocationLoading] = useState(false);
 
   const [proximityInfo, setProximityInfo] = useState<{
@@ -99,6 +106,8 @@ export default function PostReview() {
           checked: true,
           permissionDenied: false,
         });
+        setCurrentUserLongitude(locationResult.coordinates?.longitude);
+        setCurrentUserLatitude(locationResult.coordinates?.latitude);
       } else if (locationResult.status === 'permission_denied') {
         setProximityInfo({
           isNearby: false,
@@ -137,8 +146,6 @@ export default function PostReview() {
     try {
       // In a real app, we would use actual location data and a ZK circuit for location verification
       // For now, we'll simulate this with the product circuit
-      const latFactor = Math.round(Math.abs(latitude) * 100);
-      const longFactor = Math.round(Math.abs(longitude) * 100);
 
       console.log('GENERATING PROOF');
       // const {proofWithPublicInputs} = await generateProof(
@@ -151,10 +158,15 @@ export default function PostReview() {
       //   circuitId!,
       // );
 
-      const user_lat = Math.round((40.714491 + 90) * 1e6);
-      const user_lon = Math.round((-74.001337 + 90) * 1e6);
-      const landmark_lat = Math.round((40.714403 + 90) * 1e6);
-      const landmark_lon = Math.round((-74.001508 + 90) * 1e6);
+      if (!currentUserLatitude || !currentUserLongitude) {
+        console.log('current user location is not defined');
+        return;
+      }
+
+      const user_lat = Math.round((Number(currentUserLatitude) + 90) * 1e6);
+      const user_lon = Math.round((Number(currentUserLongitude) + 90) * 1e6);
+      const landmark_lat = Math.round((latitude + 90) * 1e6);
+      const landmark_lon = Math.round((longitude + 90) * 1e6);
       console.log('locations', {
         user_lat,
         user_lon,
@@ -168,6 +180,7 @@ export default function PostReview() {
           user_lon,
           landmark_lat,
           landmark_lon,
+          max_distance: 80874049,
         },
         circuitId!,
       );
