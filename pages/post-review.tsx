@@ -8,6 +8,7 @@ import {
   ScrollView,
   View,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import Button from '../components/Button';
@@ -25,7 +26,10 @@ import circuit from '../circuits/vicinity/target/vicinity.json';
 import {formatProof} from '../lib';
 import {Circuit} from '../types';
 import {PlacesListNavigationProp} from '../types/navigation';
-import {getUserLocationAndDistance} from '../lib/location-utils';
+import {
+  getUserLocationAndDistance,
+  promptOpenSettings,
+} from '../lib/location-utils';
 
 const maxDistance = 80874049; // ~1km in scaled coordinates
 const userId = 'anonymous-' + Math.random().toString(36).substring(2, 9);
@@ -185,6 +189,13 @@ export default function PostReview() {
       const end = Date.now();
       setProvingTime(end - start);
 
+      if (!proximityInfo.isNearby) {
+        Alert.alert(
+          'Security Alert',
+          "The zero-knowledge proof circuit accepted a location outside the venue's proximity radius. This indicates a potential vulnerability in the circuit constraints.",
+        );
+      }
+
       const {proofWithPublicInputs: proofData, vkey: verificationKey} =
         proofResult;
       setProofWithPublicInputs(proofData);
@@ -201,11 +212,35 @@ export default function PostReview() {
       );
     } catch (err: any) {
       console.error('Error in ZK proof generation:', err);
-      setError(`ZK proof generation failed: ${err.message}`);
-      Alert.alert(
-        'Proof Generation Error',
-        `Failed to generate ZK proximity proof: ${err.message}`,
-      );
+
+      if (!proximityInfo.isNearby) {
+        const distanceMessage = proximityInfo.distanceInKm.toFixed(2);
+        Alert.alert(
+          'Location Verification Failed',
+          `The zero-knowledge circuit rejected your proof attempt because you are ${distanceMessage}km away from the venue. This demonstrates the security of our verification system - reviews can only be posted with cryptographic proof of presence.`,
+          [
+            {
+              text: 'Learn More',
+              onPress: () => {
+                Alert.alert(
+                  'How It Works',
+                  'Our zero-knowledge proof system mathematically verifies you were physically present at a venue without revealing your exact location. The proof will always fail if you are outside the proximity threshold, ensuring all reviews come from actual visitors.',
+                );
+              },
+            },
+            {text: 'OK', style: 'default'},
+          ],
+        );
+        setError(
+          `Proof generation failed: You must be within 1km of the venue to generate a valid proof (Current distance: ${distanceMessage}km)`,
+        );
+      } else {
+        setError(`ZK proof generation failed: ${err.message}`);
+        Alert.alert(
+          'Proof Generation Error',
+          `Failed to generate ZK proximity proof: ${err.message}`,
+        );
+      }
     } finally {
       setGeneratingProof(false);
     }
@@ -300,6 +335,53 @@ export default function PostReview() {
     }
   };
 
+  // New component to show when user is outside location range
+  const renderLocationWarning = () => {
+    if (
+      !proximityInfo.checked ||
+      proximityInfo.permissionDenied ||
+      locationLoading
+    ) {
+      return null;
+    }
+
+    if (!proximityInfo.isNearby) {
+      return (
+        <View style={styles.locationWarningContainer}>
+          <Text style={styles.locationWarningTitle}>
+            ⚠️ Location Information
+          </Text>
+          <Text style={styles.locationWarningText}>
+            You are currently{' '}
+            <Text style={styles.distanceText}>
+              {proximityInfo.distanceInKm.toFixed(2)}km
+            </Text>{' '}
+            away from this venue.
+          </Text>
+          <Text style={styles.locationWarningSubtext}>
+            You can still attempt to generate a proof, but the ZK circuit is
+            designed to verify you're within 1km of the venue. This will
+            demonstrate the security of our system.
+          </Text>
+          <TouchableOpacity
+            style={styles.refreshLocationButton}
+            onPress={checkUserLocation}>
+            <Text style={styles.refreshLocationText}>Refresh Location</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.locationSuccessContainer}>
+        <Text style={styles.locationSuccessText}>
+          ✓ You are within {proximityInfo.distanceInKm.toFixed(2)}km of this
+          venue
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <MainLayout canGoBack={true}>
       <ScrollView>
@@ -311,28 +393,36 @@ export default function PostReview() {
             Venue Coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)}
           </Text>
 
-          {proximityInfo.checked && !proximityInfo.permissionDenied && (
+          {renderLocationWarning()}
+
+          {proximityInfo.permissionDenied && (
             <View
               style={[
                 styles.locationStatusContainer,
-                {
-                  backgroundColor: proximityInfo.isNearby
-                    ? '#ECFDF5'
-                    : '#FEF2F2',
-                },
+                {backgroundColor: '#FEF3C7'},
               ]}>
-              <Text
-                style={[
-                  styles.locationStatusText,
-                  {color: proximityInfo.isNearby ? '#059669' : '#EF4444'},
-                ]}>
-                {proximityInfo.isNearby
-                  ? `Within proximity threshold (${proximityInfo.distanceInKm.toFixed(
-                      2,
-                    )}km)`
-                  : `Outside proximity threshold (${proximityInfo.distanceInKm.toFixed(
-                      2,
-                    )}km)`}
+              <Text style={[styles.locationStatusText, {color: '#D97706'}]}>
+                ⚠️ {proximityInfo.errorMessage}
+              </Text>
+              <TouchableOpacity onPress={() => promptOpenSettings()}>
+                <Text style={styles.retryLocationText}>Enable location</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {locationLoading && (
+            <View
+              style={[
+                styles.locationStatusContainer,
+                {backgroundColor: '#F0F9FF'},
+              ]}>
+              <ActivityIndicator
+                size="small"
+                color="#3B82F6"
+                style={{marginRight: 8}}
+              />
+              <Text style={[styles.locationStatusText, {color: '#0369A1'}]}>
+                Checking your location...
               </Text>
             </View>
           )}
@@ -479,6 +569,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#3B82F6',
   },
+  disabledButton: {
+    backgroundColor: '#93C5FD',
+  },
   verifyButton: {
     marginTop: 10,
     backgroundColor: '#8B5CF6',
@@ -553,5 +646,64 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginTop: 10,
     textAlign: 'center',
+  },
+  locationWarningContainer: {
+    backgroundColor: '#FFF7ED',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FDBA74',
+  },
+  locationWarningTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#C2410C',
+    marginBottom: 8,
+  },
+  locationWarningText: {
+    fontSize: 14,
+    color: '#9A3412',
+    marginBottom: 8,
+  },
+  locationWarningSubtext: {
+    fontSize: 13,
+    color: '#B45309',
+    marginBottom: 12,
+    lineHeight: 18,
+  },
+  distanceText: {
+    fontWeight: '700',
+  },
+  refreshLocationButton: {
+    backgroundColor: '#FEE2E2',
+    padding: 8,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  refreshLocationText: {
+    color: '#B91C1C',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  locationSuccessContainer: {
+    backgroundColor: '#ECFDF5',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  locationSuccessText: {
+    color: '#047857',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  retryLocationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginLeft: 8,
+    textDecorationLine: 'underline',
   },
 });
