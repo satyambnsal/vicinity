@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useEffect, useState} from 'react';
-import {Text, View, StyleSheet, TouchableOpacity} from 'react-native';
+import {Text, View, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 // import Button from '../components/Button';
 import {useNavigation} from '@react-navigation/native';
@@ -39,11 +39,11 @@ export default function Home() {
   return (
     <MainLayout hideHeader>
       <View style={styles.heroSection}>
-        {/* <Image
+        <Image
           source={require('../assets/images/logo.png')}
           style={styles.logo}
           resizeMode="contain"
-        /> */}
+        />
         <Text style={styles.title}>Vicinity</Text>
         <Text style={styles.subtitle}>
           Privacy-Preserving Location-Verified Reviews
@@ -65,10 +65,10 @@ export default function Home() {
           <TouchableOpacity
             style={styles.featuredCard}
             onPress={() => navigation.navigate('PlacesList')}>
-            {/* <Image
+            <Image
               source={require('../assets/images/icons/map-pin.png')}
               style={styles.cardIcon}
-            /> */}
+            />
             <Text style={styles.cardTitle}>Explore Places</Text>
             <Text style={styles.cardDescription}>
               Discover venues and see location-verified reviews
@@ -78,10 +78,10 @@ export default function Home() {
           <TouchableOpacity
             style={styles.featuredCard}
             onPress={() => navigation.navigate('RecentReviews')}>
-            {/* <Image
+            <Image
               source={require('../assets/images/icons/message-square.png')}
               style={styles.cardIcon}
-            /> */}
+            />
             <Text style={styles.cardTitle}>Recent Reviews</Text>
             <Text style={styles.cardDescription}>
               See the latest verified reviews from users
@@ -124,6 +124,12 @@ export default function Home() {
           <Text style={styles.statusText}>✓ Device attestation supported</Text>
         </View>
       )}
+
+      <TouchableOpacity
+        style={styles.aboutButton}
+        onPress={() => navigation.navigate('About')}>
+        <Text style={styles.aboutButtonText}>About Vicinity</Text>
+      </TouchableOpacity>
     </MainLayout>
   );
 }
@@ -229,5 +235,22 @@ const styles = StyleSheet.create({
   statusText: {
     color: '#059669',
     fontWeight: '600',
+  },
+  aboutButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#3B82F6',
+    borderRadius: 8,
+    backgroundColor: '#EFF6FF',
+  },
+  aboutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginRight: 8,
   },
 });

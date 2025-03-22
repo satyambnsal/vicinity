@@ -19,6 +19,7 @@ export type RootStackParamList = {
   PedersenProof: undefined;
   Secp256r1Proof: undefined;
   SupabaseTest: undefined;
+  About: undefined;
 };
 
 export type MainTabParamList = {

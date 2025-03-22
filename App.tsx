@@ -15,6 +15,7 @@ import PlaceDetail from './pages/place-detail';
 import {RootStackParamList} from './types/navigation';
 import SplashScreen from './pages/splash-screen';
 import BottomTabNavigator from './components/navigation/BottomTabNavigator';
+import About from './pages/about';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -42,6 +43,7 @@ function App(): React.JSX.Element {
           <Stack.Screen name="RecentReviews" component={RecentReviews} />
           <Stack.Screen name="PlacesList" component={PlacesList} />
           <Stack.Screen name="PlaceDetail" component={PlaceDetail} />
+          <Stack.Screen name="About" component={About} />
         </Stack.Navigator>
       </NavigationContainer>
     </TamaguiProvider>

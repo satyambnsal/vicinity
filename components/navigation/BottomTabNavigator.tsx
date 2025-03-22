@@ -1,11 +1,32 @@
 import React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import {StyleSheet, Platform} from 'react-native';
+import {StyleSheet, Platform, Image} from 'react-native';
 import PlacesList from '../../pages/places-list';
 import Home from '../../pages/home';
 import RecentReviews from '../../pages/recent-reviews';
 
 const Tab = createBottomTabNavigator();
+
+const HomeIcon = ({color}: {color: string}) => (
+  <Image
+    source={require('../../assets/images/icons/home.png')}
+    style={[styles.tabBarIcon, {tintColor: color}]}
+  />
+);
+
+const PlacesIcon = ({color}: {color: string}) => (
+  <Image
+    source={require('../../assets/images/icons/map-pin.png')}
+    style={[styles.tabBarIcon, {tintColor: color}]}
+  />
+);
+
+const ReviewsIcon = ({color}: {color: string}) => (
+  <Image
+    source={require('../../assets/images/icons/message-square.png')}
+    style={[styles.tabBarIcon, {tintColor: color}]}
+  />
+);
 
 export default function BottomTabNavigator() {
   return (
@@ -23,6 +44,7 @@ export default function BottomTabNavigator() {
         component={Home}
         options={{
           tabBarLabel: 'Home',
+          tabBarIcon: HomeIcon,
         }}
       />
       <Tab.Screen
@@ -30,6 +52,7 @@ export default function BottomTabNavigator() {
         component={PlacesList}
         options={{
           tabBarLabel: 'Places',
+          tabBarIcon: PlacesIcon,
         }}
       />
       <Tab.Screen
@@ -37,6 +60,7 @@ export default function BottomTabNavigator() {
         component={RecentReviews}
         options={{
           tabBarLabel: 'Reviews',
+          tabBarIcon: ReviewsIcon,
         }}
       />
     </Tab.Navigator>
@@ -63,6 +87,10 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     fontSize: 12,
     fontWeight: '500',
-    marginBottom: 5,
+    marginBottom: Platform.OS === 'ios' ? 0 : 5,
+  },
+  tabBarIcon: {
+    width: 24,
+    height: 24,
   },
 });
