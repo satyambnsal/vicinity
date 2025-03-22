@@ -13,6 +13,7 @@ import {supabase} from '../lib/supabase';
 import Button from '../components/Button';
 import Geolocation from '@react-native-community/geolocation';
 import {getTimeAgo} from './place-detail';
+import LocationProofVerifier from '../components/LocationProofVerifier';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width - 40;
@@ -197,15 +198,12 @@ export default function RecentReviews() {
 
               <View style={styles.proofContainer}>
                 <View style={styles.proofBadge}>
-                  {/* <Image
-                    source={require('../assets/images/icons/check-circle.png')}
-                    style={styles.verifiedIcon}
-                  /> */}
                   <Text style={styles.proofText}>Location Verified</Text>
                 </View>
-                <TouchableOpacity style={styles.proofButton}>
-                  <Text style={styles.proofButtonText}>View Proof</Text>
-                </TouchableOpacity>
+                <LocationProofVerifier
+                  proof={review.location_proof}
+                  placeName={`Venue #${review.place_id}`}
+                />
               </View>
 
               <View style={styles.reviewFooter}>

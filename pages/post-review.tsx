@@ -302,7 +302,7 @@ export default function PostReview() {
             place_id: place_id,
             rating: parseInt(rating),
             review_text: reviewText,
-            location_proof: locationProof,
+            location_proof: proofWithPublicInputs,
             user_id: userId,
             upvotes: 0,
             downvotes: 0,

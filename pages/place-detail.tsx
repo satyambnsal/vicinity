@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
-  Alert,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import {supabase} from '../lib/supabase';
@@ -21,6 +20,7 @@ import {
   promptOpenSettings,
   requestLocationPermission,
 } from '../lib/location-utils';
+import LocationProofVerifier from '../components/LocationProofVerifier';
 
 // Get screen dimensions for responsive design
 const {width} = Dimensions.get('window');
@@ -212,38 +212,18 @@ export default function PlaceDetail() {
       return;
     }
 
-    if (!proximityInfo.checked) {
-      checkUserLocation();
-      return;
-    }
-
     if (proximityInfo.permissionDenied) {
       promptOpenSettings();
       return;
     }
 
-    if (!proximityInfo.isNearby) {
-      Alert.alert(
-        'Location Verification Failed',
-        `You appear to be ${proximityInfo.distanceInKm.toFixed(
-          2,
-        )}km away from this location. You must be at the venue to post a verified review.`,
-        [
-          {
-            text: 'OK',
-            style: 'default',
-          },
-        ],
-      );
-    } else {
-      // User is nearby, proceed with review
-      navigation.navigate('PostReview', {
-        place_id: place.place_id,
-        placeName: place.name,
-        latitude: place.latitude,
-        longitude: place.longitude,
-      });
-    }
+    navigation.navigate('PostReview', {
+      place_id: place.place_id,
+      placeName: place.name,
+      latitude: place.latitude,
+      longitude: place.longitude,
+    });
+    // }
   };
 
   const retryLocationCheck = async () => {
@@ -477,6 +457,10 @@ export default function PlaceDetail() {
                   <View style={styles.proofBadge}>
                     <Text style={styles.proofText}>Location Verified</Text>
                   </View>
+                  <LocationProofVerifier
+                    proof={review.location_proof}
+                    placeName={place.name}
+                  />
                 </View>
 
                 <View style={styles.reviewFooter}>
