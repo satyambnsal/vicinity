@@ -15,7 +15,7 @@ import {supabase} from '../lib/supabase';
 import {useNavigation} from '@react-navigation/native';
 import {PlacesListNavigationProp} from '../types/navigation';
 import SearchBar from '../components/SearchBar';
-import {useDebounce} from '../lib/hooks';
+import {useDebounce} from '../lib/hooks/useDebounce';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width - 40;
