@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
 import Button from '../components/Button';
@@ -18,6 +19,7 @@ import {
   extractProof,
   generateProof,
   setupCircuit,
+  verifyProof,
 } from '../lib/noir';
 import circuit from '../circuits/vicinity/target/vicinity.json';
 import {formatProof} from '../lib';
@@ -25,20 +27,23 @@ import {Circuit} from '../types';
 import {PlacesListNavigationProp} from '../types/navigation';
 import {getUserLocationAndDistance} from '../lib/location-utils';
 
+const maxDistance = 80874049; // ~1km in scaled coordinates
+const userId = 'anonymous-' + Math.random().toString(36).substring(2, 9);
+
 export default function PostReview() {
   const [rating, setRating] = useState('');
   const [reviewText, setReviewText] = useState('');
-  const [userId, setUserId] = useState(
-    'anonymous-' + Math.random().toString(36).substring(2, 9),
-  );
 
   const [locationProof, setLocationProof] = useState('');
+  const [vkey, setVkey] = useState('');
+  const [proofWithPublicInputs, setProofWithPublicInputs] = useState('');
   const [generatingProof, setGeneratingProof] = useState(false);
   const [proofGenerated, setProofGenerated] = useState(false);
   const [circuitId, setCircuitId] = useState<string>();
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [provingTime, setProvingTime] = useState(0);
 
   const navigation = useNavigation<PlacesListNavigationProp>();
   const route = useRoute();
@@ -48,6 +53,7 @@ export default function PostReview() {
     latitude: number;
     longitude: number;
   };
+
   const [currentUserLatitude, setCurrentUserLatitude] = useState<
     Number | undefined
   >(undefined);
@@ -126,101 +132,117 @@ export default function PostReview() {
         });
       }
     } catch (err) {
-      console.error('Error checking location:', err);
+      console.error('Error checking location data:', err);
       setProximityInfo({
         isNearby: false,
         distanceInKm: 0,
         checked: true,
         permissionDenied: false,
-        errorMessage: 'Failed to check your location',
+        errorMessage: 'Failed to obtain geolocation coordinates',
       });
     } finally {
       setLocationLoading(false);
     }
   };
 
-  const generateLocationProof = async () => {
+  const generateZKLocationProof = async () => {
     setGeneratingProof(true);
     setError(null);
 
     try {
-      // In a real app, we would use actual location data and a ZK circuit for location verification
-      // For now, we'll simulate this with the product circuit
-
-      console.log('GENERATING PROOF');
-      // const {proofWithPublicInputs} = await generateProof(
-      //   {
-      //     user_lat: Math.round((40714491 + 90) * 1e6),
-      //     user_lon: Math.round((-74001337 + 90) * 1e6),
-      //     landmark_lat: Math.round((40714403 + 90) * 1e6),
-      //     landmark_lon: Math.round((-74001508 + 90) * 1e6),
-      //   },
-      //   circuitId!,
-      // );
-
       if (!currentUserLatitude || !currentUserLongitude) {
-        console.log('current user location is not defined');
-        return;
+        throw new Error(
+          'Client coordinates not available for ZK circuit input',
+        );
       }
 
+      console.log('Preparing circuit inputs for ZK proof generation');
+      // Scale and offset coordinates to work with Noir's integer constraints
       const user_lat = Math.round((Number(currentUserLatitude) + 90) * 1e6);
       const user_lon = Math.round((Number(currentUserLongitude) + 90) * 1e6);
       const landmark_lat = Math.round((latitude + 90) * 1e6);
       const landmark_lon = Math.round((longitude + 90) * 1e6);
-      console.log('locations', {
+
+      console.log('ZK Circuit Inputs:', {
         user_lat,
         user_lon,
         landmark_lat,
         landmark_lon,
+        max_distance: maxDistance,
       });
 
-      const {proofWithPublicInputs} = await generateProof(
+      const start = Date.now();
+      const proofResult = await generateProof(
         {
           user_lat,
           user_lon,
           landmark_lat,
           landmark_lon,
-          max_distance: 80874049,
+          max_distance: maxDistance,
         },
         circuitId!,
       );
+      const end = Date.now();
+      setProvingTime(end - start);
 
-      // const {proofWithPublicInputs} = await generateProof(
-      //   {
-      //     landmark_lat: Number(40714491),
-      //     landmark_lon: Number(-74001337),
-      //     user_lat: Number(40714403),
-      //     user_lon: Number(-74001508),
-      //   },
-      //   circuitId!,
-      // );
+      const {proofWithPublicInputs: proofData, vkey: verificationKey} =
+        proofResult;
+      setProofWithPublicInputs(proofData);
+      setVkey(verificationKey);
 
-      console.log('EXTRACTING PROOF');
-
-      const proof = extractProof(
-        circuit as unknown as Circuit,
-        proofWithPublicInputs,
-      );
+      console.log('Extracting ZK proof from circuit output');
+      const proof = extractProof(circuit as unknown as Circuit, proofData);
       setLocationProof(proof);
       setProofGenerated(true);
+
       Alert.alert(
-        'Success',
-        'Location verified! You can now submit your review.',
+        'ZK Proof Generated',
+        'Your zero-knowledge proximity proof has been successfully generated. You can now submit your review with cryptographic location verification.',
       );
     } catch (err: any) {
-      console.error('Error generating proof:', err);
-      setError(`Failed to verify location: ${err.message}`);
-      Alert.alert('Error', `Failed to verify location: ${err.message}`);
+      console.error('Error in ZK proof generation:', err);
+      setError(`ZK proof generation failed: ${err.message}`);
+      Alert.alert(
+        'Proof Generation Error',
+        `Failed to generate ZK proximity proof: ${err.message}`,
+      );
     } finally {
       setGeneratingProof(false);
+    }
+  };
+
+  const verifyZKLocationProof = async () => {
+    if (!proofWithPublicInputs || !vkey || !circuitId) {
+      Alert.alert('Verification Error', 'No proof available to verify');
+      return;
+    }
+
+    try {
+      const verified = await verifyProof(
+        proofWithPublicInputs,
+        vkey,
+        circuitId,
+      );
+
+      if (verified) {
+        Alert.alert('Proof Verification', 'The ZK proximity proof is valid!');
+      } else {
+        Alert.alert('Proof Verification', 'The ZK proximity proof is invalid!');
+      }
+    } catch (err: any) {
+      console.error('Error verifying proof:', err);
+      Alert.alert(
+        'Verification Error',
+        `Failed to verify proof: ${err.message}`,
+      );
     }
   };
 
   const submitReview = async () => {
     if (!rating || !reviewText || !locationProof) {
       Alert.alert(
-        'Missing information',
-        'Please fill in all fields and verify your location before submitting',
+        'Missing Information',
+        'Please fill in all fields and generate a ZK location proof before submitting',
       );
       return;
     }
@@ -230,7 +252,7 @@ export default function PostReview() {
       parseInt(rating) < 1 ||
       parseInt(rating) > 5
     ) {
-      Alert.alert('Invalid rating', 'Rating must be between 1 and 5');
+      Alert.alert('Invalid Rating', 'Rating must be between 1 and 5');
       return;
     }
 
@@ -258,8 +280,8 @@ export default function PostReview() {
       }
 
       Alert.alert(
-        'Review posted!',
-        'Your review has been posted successfully.',
+        'Review Published',
+        'Your cryptographically verified review has been posted successfully.',
         [
           {
             text: 'OK',
@@ -272,7 +294,7 @@ export default function PostReview() {
     } catch (err: any) {
       console.error('Error posting review:', err);
       setError(`Failed to post review: ${err.message}`);
-      Alert.alert('Error', `Failed to post review: ${err.message}`);
+      Alert.alert('Submission Error', `Failed to post review: ${err.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -281,13 +303,39 @@ export default function PostReview() {
   return (
     <MainLayout canGoBack={true}>
       <ScrollView>
-        <Text style={styles.title}>Post a Review 1</Text>
+        <Text style={styles.title}>Post a Review</Text>
 
         <View style={styles.placeInfoContainer}>
           <Text style={styles.placeName}>{placeName}</Text>
           <Text style={styles.placeCoordinates}>
-            Location: {latitude.toFixed(4)}, {longitude.toFixed(4)}
+            Venue Coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)}
           </Text>
+
+          {proximityInfo.checked && !proximityInfo.permissionDenied && (
+            <View
+              style={[
+                styles.locationStatusContainer,
+                {
+                  backgroundColor: proximityInfo.isNearby
+                    ? '#ECFDF5'
+                    : '#FEF2F2',
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.locationStatusText,
+                  {color: proximityInfo.isNearby ? '#059669' : '#EF4444'},
+                ]}>
+                {proximityInfo.isNearby
+                  ? `Within proximity threshold (${proximityInfo.distanceInKm.toFixed(
+                      2,
+                    )}km)`
+                  : `Outside proximity threshold (${proximityInfo.distanceInKm.toFixed(
+                      2,
+                    )}km)`}
+              </Text>
+            </View>
+          )}
         </View>
 
         <Text style={styles.label}>Rating (1-5)</Text>
@@ -313,30 +361,60 @@ export default function PostReview() {
         {!proofGenerated ? (
           <Button
             disabled={generatingProof || !circuitId}
-            onPress={generateLocationProof}
+            onPress={generateZKLocationProof}
             style={styles.button}>
             <Text style={styles.buttonText}>
               {generatingProof
-                ? 'Verifying Location...'
-                : 'Verify Your Location'}
+                ? 'Generating ZK Proof...'
+                : 'Generate ZK Proximity Proof'}
             </Text>
           </Button>
         ) : (
           <>
-            <Text style={styles.verifiedText}>✓ Location Verified!</Text>
-            {locationProof && (
+            <View style={styles.proofContainer}>
+              <Text style={styles.proofHeader}>
+                Zero-Knowledge Proximity Proof
+              </Text>
+              <Text style={styles.proofGeneratedText}>
+                ✓ Cryptographically Verified Location
+              </Text>
+
+              {provingTime > 0 && (
+                <Text style={styles.proofMetadata}>
+                  Proving Time: {provingTime}ms
+                </Text>
+              )}
+
+              <Text style={styles.proofLabel}>Proof Digest (Truncated):</Text>
               <Text style={styles.proofText}>{formatProof(locationProof)}</Text>
-            )}
+
+              <Button
+                onPress={verifyZKLocationProof}
+                style={styles.verifyButton}>
+                <Text style={styles.buttonText}>Verify ZK Proof</Text>
+              </Button>
+            </View>
 
             <Button
               disabled={submitting}
               onPress={submitReview}
               style={styles.submitButton}>
               <Text style={styles.buttonText}>
-                {submitting ? 'Posting Review...' : 'Post Review'}
+                {submitting
+                  ? 'Publishing Review...'
+                  : 'Publish Verified Review'}
               </Text>
             </Button>
           </>
+        )}
+
+        {locationLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color="#3B82F6" />
+            <Text style={styles.loadingText}>
+              Fetching geolocation coordinates...
+            </Text>
+          </View>
         )}
 
         {error && <Text style={styles.errorText}>{error}</Text>}
@@ -368,6 +446,16 @@ const styles = StyleSheet.create({
   placeCoordinates: {
     fontSize: 14,
     color: '#64748B',
+    fontFamily: 'monospace',
+  },
+  locationStatusContainer: {
+    marginTop: 10,
+    padding: 8,
+    borderRadius: 6,
+  },
+  locationStatusText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   label: {
     fontSize: 16,
@@ -389,9 +477,14 @@ const styles = StyleSheet.create({
   },
   button: {
     marginBottom: 15,
+    backgroundColor: '#3B82F6',
+  },
+  verifyButton: {
+    marginTop: 10,
+    backgroundColor: '#8B5CF6',
   },
   submitButton: {
-    marginTop: 10,
+    marginTop: 16,
     backgroundColor: '#10B981',
   },
   buttonText: {
@@ -399,20 +492,61 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 16,
   },
-  verifiedText: {
-    fontSize: 16,
+  proofContainer: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  proofHeader: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#10B981',
+    color: '#1E293B',
     textAlign: 'center',
     marginBottom: 10,
   },
+  proofGeneratedText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#059669',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  proofMetadata: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: 'monospace',
+  },
+  proofLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+    marginBottom: 8,
+  },
   proofText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 20,
+    fontSize: 13,
+    color: '#64748B',
+    marginBottom: 16,
     padding: 10,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
+    fontFamily: 'monospace',
+    letterSpacing: -0.5,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  loadingText: {
+    marginLeft: 10,
+    color: '#6B7280',
+    fontSize: 14,
   },
   errorText: {
     fontSize: 14,
@@ -421,10 +555,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-function adjustCoordinates(lat: number, lon: number) {
-  return {
-    latAdj: Math.round((lat + 90) * 1e6),
-    lonAdj: Math.round((lon + 180) * 1e6),
-  };
-}
