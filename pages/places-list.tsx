@@ -14,6 +14,8 @@ import MainLayout from '../layouts/MainLayout';
 import {supabase} from '../lib/supabase';
 import {useNavigation} from '@react-navigation/native';
 import {PlacesListNavigationProp} from '../types/navigation';
+import SearchBar from '../components/SearchBar';
+import {useDebounce} from '../lib/hooks';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width - 40;
@@ -33,13 +35,40 @@ interface Place {
 
 export default function PlacesList() {
   const [places, setPlaces] = useState<Place[]>([]);
+  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+
   const navigation = useNavigation<PlacesListNavigationProp>();
 
   useEffect(() => {
     fetchPlaces();
   }, []);
+
+  // Effect for filtering places when search query changes
+  useEffect(() => {
+    if (!places.length) {
+      return;
+    }
+
+    if (!debouncedSearchQuery.trim()) {
+      setFilteredPlaces(places);
+      return;
+    }
+
+    const lowercasedQuery = debouncedSearchQuery.toLowerCase();
+    const filtered = places.filter(
+      place =>
+        place.name.toLowerCase().includes(lowercasedQuery) ||
+        place.description.toLowerCase().includes(lowercasedQuery) ||
+        place.address.toLowerCase().includes(lowercasedQuery) ||
+        place.category.toLowerCase().includes(lowercasedQuery),
+    );
+
+    setFilteredPlaces(filtered);
+  }, [debouncedSearchQuery, places]);
 
   const fetchPlaces = async () => {
     setLoading(true);
@@ -56,6 +85,7 @@ export default function PlacesList() {
       }
 
       setPlaces(data || []);
+      setFilteredPlaces(data || []);
     } catch (err: any) {
       console.error('Error fetching places:', err);
       setError(`Failed to load places: ${err.message}`);
@@ -66,6 +96,10 @@ export default function PlacesList() {
 
   const navigateToPlaceDetail = (place: Place) => {
     navigation.navigate('PlaceDetail', {place_id: place.place_id});
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
   };
 
   const renderPlaceCard = ({item}: {item: Place}) => (
@@ -92,6 +126,17 @@ export default function PlacesList() {
     </TouchableOpacity>
   );
 
+  const renderEmptySearch = () => (
+    <View style={styles.emptySearchContainer}>
+      <Text style={styles.emptySearchText}>
+        No places found matching your search
+      </Text>
+      <TouchableOpacity onPress={handleSearchClear}>
+        <Text style={styles.emptySearchReset}>Reset search</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <MainLayout canGoBack={true} disableScroll={true}>
       <View style={{flex: 1}}>
@@ -101,6 +146,13 @@ export default function PlacesList() {
             <Text style={styles.refreshText}>Refresh</Text>
           </TouchableOpacity>
         </View>
+
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search places by name, category..."
+          onClear={handleSearchClear}
+        />
 
         {loading ? (
           <ActivityIndicator
@@ -117,12 +169,16 @@ export default function PlacesList() {
           </View>
         ) : (
           <FlatList
-            data={places}
+            data={filteredPlaces}
             renderItem={renderPlaceCard}
             keyExtractor={item => item.id}
-            contentContainerStyle={styles.list}
+            contentContainerStyle={[
+              styles.list,
+              filteredPlaces.length === 0 && styles.centerEmptySet,
+            ]}
             showsVerticalScrollIndicator={false}
             style={{flex: 1}}
+            ListEmptyComponent={renderEmptySearch}
           />
         )}
       </View>
@@ -173,6 +229,26 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: 20,
+  },
+  centerEmptySet: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    flex: 1,
+  },
+  emptySearchContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptySearchText: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 12,
+  },
+  emptySearchReset: {
+    fontSize: 14,
+    color: '#3B82F6',
+    fontWeight: '600',
   },
   card: {
     backgroundColor: 'white',
