@@ -7,8 +7,11 @@ import {
   Modal,
   ScrollView,
   ActivityIndicator,
-  Clipboard,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Button from './Button';
 import {setupCircuit, verifyProof} from '../lib/noir';
 import {formatProof} from '../lib';
@@ -32,6 +35,7 @@ const LocationProofVerifier = ({
     error?: string;
   } | null>(null);
   const [circuitId, setCircuitId] = useState<string | null>(null);
+  const [showCopyToast, setShowCopyToast] = useState(false);
 
   const showProofDetails = () => {
     setModalVisible(true);
@@ -45,9 +49,33 @@ const LocationProofVerifier = ({
     setVerificationResult(null);
   };
 
+  const showToastMessage = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.showWithGravityAndOffset(
+        message,
+        ToastAndroid.SHORT,
+        ToastAndroid.BOTTOM,
+        0,
+        100,
+      );
+    } else {
+      Alert.alert(
+        'Success',
+        message,
+        [{text: 'OK', onPress: () => {}, style: 'cancel'}],
+        {cancelable: true},
+      );
+    }
+  };
+
   const copyProofToClipboard = () => {
     Clipboard.setString(proof);
-    // TODO: show a toast or some feedback here
+    showToastMessage('Proof copied to clipboard');
+    setShowCopyToast(true);
+
+    setTimeout(() => {
+      setShowCopyToast(false);
+    }, 2000);
   };
 
   const verifyLocationProof = async () => {
@@ -105,9 +133,14 @@ const LocationProofVerifier = ({
 
             <View style={styles.actionsContainer}>
               <TouchableOpacity
-                style={styles.copyButton}
+                style={[
+                  styles.copyButton,
+                  showCopyToast && styles.copyButtonActive,
+                ]}
                 onPress={copyProofToClipboard}>
-                <Text style={styles.copyButtonText}>Copy Proof</Text>
+                <Text style={styles.copyButtonText}>
+                  {showCopyToast ? 'Copied!' : 'Copy Proof'}
+                </Text>
               </TouchableOpacity>
 
               {!verificationResult && (
@@ -245,6 +278,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
+  },
+  copyButtonActive: {
+    backgroundColor: '#C7D2FE',
+    borderColor: '#4F46E5',
+    borderWidth: 1,
   },
   copyButtonText: {
     color: '#4F46E5',

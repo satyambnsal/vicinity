@@ -1197,6 +1197,8 @@ PODS:
     - React-utils (= 0.74.3)
   - RNCAsyncStorage (2.1.2):
     - React-Core
+  - RNCClipboard (1.16.2):
+    - React-Core
   - RNDeviceInfo (14.0.4):
     - React-Core
   - RNScreens (3.32.0):
@@ -1286,6 +1288,7 @@ DEPENDENCIES:
   - React-utils (from `../node_modules/react-native/ReactCommon/react/utils`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -1414,6 +1417,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNCClipboard:
+    :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNScreens:
@@ -1481,6 +1486,7 @@ SPEC CHECKSUMS:
   React-utils: 595335727912553f56aad7f580254ce4ca95a09c
   ReactCommon: 57d127dbf2ca045a07604e13f51c8e97ba176e56
   RNCAsyncStorage: b9f5f78da5d16a853fe3dc22e8268d932fc45a83
+  RNCClipboard: e1d17c9d093d8129ef50b39b63a17a0e8ccd0ade
   RNDeviceInfo: d863506092aef7e7af3a1c350c913d867d795047
   RNScreens: 9b6c77e83fa17fb9cef0af508cdcb4f4dc07f468
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
