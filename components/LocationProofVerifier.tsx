@@ -271,6 +271,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
   copyButton: {
@@ -278,6 +279,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 40,
   },
   copyButtonActive: {
     backgroundColor: '#C7D2FE',
@@ -292,6 +296,9 @@ const styles = StyleSheet.create({
   verifyButton: {
     backgroundColor: '#3B82F6',
     maxWidth: '50%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 40,
   },
   verifyButtonText: {
     color: 'white',
