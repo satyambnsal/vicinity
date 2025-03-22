@@ -16,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import {PlacesListNavigationProp} from '../types/navigation';
 import SearchBar from '../components/SearchBar';
 import {useDebounce} from '../lib/hooks/useDebounce';
+import {COLORS, FONTS, SHADOWS} from '../lib/theme';
 
 const {width} = Dimensions.get('window');
 const cardWidth = width - 40;
@@ -114,7 +115,7 @@ export default function PlacesList() {
         resizeMode="cover"
       />
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.name}</Text>
+        {/* <Text style={styles.cardTitle}>{item.name}</Text> */}
         <Text style={styles.cardCategory}>{item.category}</Text>
         <Text style={styles.cardDescription} numberOfLines={2}>
           {item.description}
@@ -137,16 +138,18 @@ export default function PlacesList() {
     </View>
   );
 
-  return (
-    <MainLayout canGoBack={true} disableScroll={true}>
-      <View style={{flex: 1}}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Famous Places</Text>
-          <TouchableOpacity onPress={fetchPlaces}>
-            <Text style={styles.refreshText}>Refresh</Text>
-          </TouchableOpacity>
-        </View>
+  // const handleRefresh = () => {
+  //   fetchPlaces();
+  // };
 
+  return (
+    <MainLayout
+      disableScroll={true}
+      // headerTitle="Explore Places"
+      // headerRightAction={handleRefresh}
+      // headerRightActionLabel="Refresh"
+    >
+      <View style={{flex: 1}}>
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -157,7 +160,7 @@ export default function PlacesList() {
         {loading ? (
           <ActivityIndicator
             size="large"
-            color="#3B82F6"
+            color={COLORS.primary}
             style={styles.loader}
           />
         ) : error ? (
@@ -196,10 +199,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.textDark,
   },
   refreshText: {
-    color: '#3B82F6',
+    color: COLORS.primary,
     fontWeight: '600',
   },
   loader: {
@@ -213,12 +216,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   errorText: {
-    color: '#EF4444',
+    color: COLORS.error,
     marginBottom: 16,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#EF4444',
+    backgroundColor: COLORS.error,
     paddingHorizontal: 24,
     paddingVertical: 8,
     borderRadius: 8,
@@ -242,12 +245,12 @@ const styles = StyleSheet.create({
   },
   emptySearchText: {
     fontSize: 16,
-    color: '#64748B',
+    color: COLORS.textLight,
     marginBottom: 12,
   },
   emptySearchReset: {
     fontSize: 14,
-    color: '#3B82F6',
+    color: COLORS.primary,
     fontWeight: '600',
   },
   card: {
@@ -256,11 +259,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden',
     width: cardWidth,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
+    ...SHADOWS.md,
   },
   cardImage: {
     width: '100%',
@@ -270,25 +269,24 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    ...FONTS.h4,
     marginBottom: 4,
-    color: '#1E293B',
+    color: COLORS.textDark,
   },
   cardCategory: {
     fontSize: 14,
-    color: '#3B82F6',
+    color: COLORS.primary,
     marginBottom: 8,
     fontWeight: '500',
   },
   cardDescription: {
     fontSize: 14,
-    color: '#64748B',
+    color: COLORS.textLight,
     marginBottom: 8,
     lineHeight: 20,
   },
   cardAddress: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.lightGray,
   },
 });
