@@ -1,120 +1,105 @@
 /* eslint-disable react-native/no-inline-styles */
-import {useNavigation} from '@react-navigation/native';
 import React from 'react';
 import {
-  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
-  TouchableOpacity,
   View,
   Text,
+  StyleSheet,
 } from 'react-native';
+import Header from '../components/navigation/Header';
 
 export default function MainLayout({
   children,
   canGoBack = false,
   disableScroll = false,
+  hideHeader = false,
+  headerTitle,
+  headerRightAction,
+  headerRightActionIcon,
+  headerRightActionLabel,
 }: {
   children: React.ReactNode;
   canGoBack?: boolean;
   disableScroll?: boolean;
+  hideHeader?: boolean;
+  headerTitle?: string;
+  headerRightAction?: () => void;
+  headerRightActionIcon?: string;
+  headerRightActionLabel?: string;
 }): JSX.Element {
-  const navigation = useNavigation();
-
-  const headerContent = (
-    <>
-      {canGoBack && (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: 30,
-          }}>
-          <TouchableOpacity
-            style={{flexDirection: 'row', alignItems: 'center', gap: 9}}
-            onPress={() => {
-              navigation.goBack();
-            }}>
-            <Image
-              source={require('../assets/images/icons/arrow-left.png')}
-              resizeMode="contain"
-              style={{
-                width: 20,
-                height: 20,
-              }}
-            />
-            <Text style={{color: '#3B82F6', fontSize: 14, fontWeight: '700'}}>
-              Back
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <Image
-        source={require('../assets/images/logo.png')}
-        resizeMode="contain"
-        style={{
-          width: 100,
-          height: 100,
-          marginLeft: 'auto',
-          marginRight: 'auto',
-          borderRadius: 20,
-          marginBottom: 15,
-        }}
-      />
-      <Text
-        style={{
-          textAlign: 'center',
-          fontSize: 24,
-          fontWeight: 'bold',
-          color: '#1E293B',
-          marginBottom: 8,
-        }}>
-        Vicinity
-      </Text>
-      <Text
-        style={{
-          textAlign: 'center',
-          fontSize: 14,
-          color: '#64748B',
-          marginBottom: 30,
-        }}>
-        Privacy-Preserving Location-Verified Reviews
-      </Text>
-    </>
-  );
+  // Determine whether to show app info/logo in header
+  const showAppInfo = !headerTitle && !hideHeader;
 
   return (
-    <SafeAreaView
-      style={{
-        backgroundColor: '#F5F7FA',
-        flex: 1,
-      }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F7FA" />
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+
+      {!hideHeader && (
+        <Header
+          title={headerTitle}
+          showBackButton={canGoBack}
+          showLogo={!headerTitle}
+          rightAction={headerRightAction}
+          rightActionIcon={headerRightActionIcon}
+          rightActionLabel={headerRightActionLabel}
+        />
+      )}
+
+      {showAppInfo && (
+        <View style={styles.appInfoContainer}>
+          <Text style={styles.appName}>Vicinity</Text>
+          <Text style={styles.appTagline}>
+            Privacy-Preserving Location-Verified Reviews
+          </Text>
+        </View>
+      )}
 
       {disableScroll ? (
-        <View style={{flex: 1, backgroundColor: '#F5F7FA'}}>
-          <View style={{paddingHorizontal: 20, paddingVertical: 20}}>
-            {headerContent}
-          </View>
-          <View style={{flex: 1, paddingHorizontal: 20}}>{children}</View>
-        </View>
+        <View style={styles.content}>{children}</View>
       ) : (
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
-          style={{
-            backgroundColor: '#F5F7FA',
-          }}>
-          <View
-            style={{
-              paddingVertical: 20,
-              paddingHorizontal: 20,
-            }}>
-            {headerContent}
-            {children}
-          </View>
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}>
+          {children}
         </ScrollView>
       )}
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  appInfoContainer: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  appName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#1E293B',
+    marginBottom: 4,
+  },
+  appTagline: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  scrollView: {
+    backgroundColor: '#F8FAFC',
+  },
+  scrollViewContent: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+});

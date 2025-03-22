@@ -1,7 +1,10 @@
 import {RouteProp} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {BottomTabNavigationProp} from '@react-navigation/bottom-tabs';
 
 export type RootStackParamList = {
+  Splash: undefined;
+  MainTabs: undefined;
   Home: undefined;
   PlacesList: undefined;
   PlaceDetail: {place_id: string};
@@ -18,9 +21,23 @@ export type RootStackParamList = {
   SupabaseTest: undefined;
 };
 
+export type MainTabParamList = {
+  HomeTab: undefined;
+  PlacesTab: undefined;
+  ReviewsTab: undefined;
+};
+
+export type HomeNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Home'
+>;
+
 export type PlacesListNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
   'PlacesList'
 >;
+
 export type PlaceDetailRouteProp = RouteProp<RootStackParamList, 'PlaceDetail'>;
 export type PostReviewRouteProp = RouteProp<RootStackParamList, 'PostReview'>;
+
+export type TabNavigationProp = BottomTabNavigationProp<MainTabParamList>;

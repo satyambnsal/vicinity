@@ -13,6 +13,8 @@ import RecentReviews from './pages/recent-reviews';
 import PlacesList from './pages/places-list';
 import PlaceDetail from './pages/place-detail';
 import {RootStackParamList} from './types/navigation';
+import SplashScreen from './pages/splash-screen';
+import BottomTabNavigator from './components/navigation/BottomTabNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,11 +23,13 @@ function App(): React.JSX.Element {
     <TamaguiProvider config={config}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName="Home"
+          initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
           }}>
           <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
           <Stack.Screen name="ProductProof" component={ProductProof} />
           <Stack.Screen name="PedersenProof" component={PedersenProof} />
           <Stack.Screen name="Secp256r1Proof" component={Secp256r1Proof} />

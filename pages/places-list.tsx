@@ -115,7 +115,7 @@ export default function PlacesList() {
         resizeMode="cover"
       />
       <View style={styles.cardContent}>
-        {/* <Text style={styles.cardTitle}>{item.name}</Text> */}
+        <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardCategory}>{item.category}</Text>
         <Text style={styles.cardDescription} numberOfLines={2}>
           {item.description}
@@ -138,17 +138,16 @@ export default function PlacesList() {
     </View>
   );
 
-  // const handleRefresh = () => {
-  //   fetchPlaces();
-  // };
+  const handleRefresh = () => {
+    fetchPlaces();
+  };
 
   return (
     <MainLayout
       disableScroll={true}
-      // headerTitle="Explore Places"
-      // headerRightAction={handleRefresh}
-      // headerRightActionLabel="Refresh"
-    >
+      headerTitle="Explore Places"
+      headerRightAction={handleRefresh}
+      headerRightActionLabel="Refresh">
       <View style={{flex: 1}}>
         <SearchBar
           value={searchQuery}
@@ -269,7 +268,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardTitle: {
-    ...FONTS.h4,
+    fontSize: FONTS.h4.fontSize,
+    fontWeight: '700',
+    lineHeight: FONTS.h4.lineHeight,
     marginBottom: 4,
     color: COLORS.textDark,
   },
