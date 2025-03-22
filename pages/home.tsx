@@ -8,6 +8,8 @@ import {prepareSrs} from '../lib/noir';
 import {PlacesListNavigationProp} from '../types/navigation';
 import * as AppAttest from 'react-native-ios-appattest';
 import {Buffer} from 'react-native-buffer';
+// import {encode} from 'cbor2';
+import DeviceInfo from 'react-native-device-info';
 
 export default function Home() {
   const navigation = useNavigation<PlacesListNavigationProp>();
@@ -16,6 +18,10 @@ export default function Home() {
   useEffect(() => {
     // Load the local SRS (if present in resources) in internal storage
     // Only for Android, will be skipped on iOS
+    DeviceInfo.getDeviceToken().then(deviceToken => {
+      // iOS: "a2Jqsd0kanz..."
+      console.log('Device token', deviceToken);
+    });
     AppAttest.attestationSupported().then(async supported => {
       console.log('Supported', supported);
       setAttestSupported(supported);
@@ -38,6 +44,16 @@ export default function Home() {
 
   return (
     <MainLayout>
+      {/* <Text
+        style={{
+          fontSize: 16,
+          fontWeight: '500',
+          marginBottom: 20,
+          textAlign: 'center',
+          color: '#6B7280',
+        }}>
+        Hello, Expo: {encode('Hello, Expo').toString()}
+      </Text> */}
       <Text
         style={{
           fontSize: 16,

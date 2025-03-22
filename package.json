@@ -31,6 +31,7 @@
     "react-native": "^0.74.3",
     "react-native-buffer": "^6.0.3",
     "react-native-config": "^1.5.5",
+    "react-native-device-info": "^14.0.4",
     "react-native-fast-base64": "^0.1.2",
     "react-native-ios-appattest": "^1.0.1",
     "react-native-safe-area-context": "^4.10.8",
