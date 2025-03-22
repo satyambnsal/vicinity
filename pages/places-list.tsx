@@ -73,7 +73,9 @@ export default function PlacesList() {
       style={styles.card}
       onPress={() => navigateToPlaceDetail(item)}>
       <Image
-        source={{uri: item.image_url}}
+        source={{
+          uri: `https://oqymtqolwjujkayjyxdt.supabase.co/storage/v1/object/public/places//${item.place_id}.jpg`,
+        }}
         style={styles.cardImage}
         resizeMode="cover"
       />

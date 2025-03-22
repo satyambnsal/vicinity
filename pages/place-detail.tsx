@@ -229,7 +229,9 @@ export default function PlaceDetail() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.placeHeader}>
           <Image
-            source={{uri: place.image_url}}
+            source={{
+              uri: `https://oqymtqolwjujkayjyxdt.supabase.co/storage/v1/object/public/places//${place_id}.jpg`,
+            }}
             style={styles.placeImage}
             resizeMode="cover"
           />
@@ -353,7 +355,7 @@ const styles = StyleSheet.create({
   },
   placeImage: {
     width: '100%',
-    height: 200,
+    height: 300,
     borderRadius: 12,
   },
   placeInfo: {
