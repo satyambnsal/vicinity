@@ -16,8 +16,10 @@ import {supabase} from '../lib/supabase';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Button from '../components/Button';
 import {PlacesListNavigationProp} from '../types/navigation';
-import Geolocation from '@react-native-community/geolocation';
-import {calculateDistance} from '../lib';
+import {
+  getUserLocationAndDistance,
+  promptOpenSettings,
+} from '../lib/location-utils';
 
 // Get screen dimensions for responsive design
 const {width} = Dimensions.get('window');
@@ -94,10 +96,13 @@ export default function PlaceDetail() {
     isNearby: boolean;
     distanceInKm: number;
     checked: boolean;
+    permissionDenied: boolean;
+    errorMessage?: string;
   }>({
     isNearby: false,
     distanceInKm: 0,
     checked: false,
+    permissionDenied: false,
   });
 
   const navigation = useNavigation<PlacesListNavigationProp>();
@@ -116,46 +121,55 @@ export default function PlaceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place]);
 
-  const checkUserLocation = () => {
+  const checkUserLocation = async () => {
     if (!place) {
       return;
     }
 
     setLocationLoading(true);
 
-    Geolocation.getCurrentPosition(
-      info => {
-        const {isNearby, distanceInKm} = calculateDistance(
-          {
-            lat: place.latitude,
-            long: place.longitude,
-          },
-          {
-            lat: info.coords.latitude,
-            long: info.coords.longitude,
-          },
-          1,
-        );
+    try {
+      const locationResult = await getUserLocationAndDistance(
+        place.latitude,
+        place.longitude,
+      );
 
+      if (locationResult.status === 'success' && locationResult.distanceInfo) {
         setProximityInfo({
-          isNearby,
-          distanceInKm,
+          isNearby: locationResult.distanceInfo.isNearby,
+          distanceInKm: locationResult.distanceInfo.distanceInKm,
           checked: true,
+          permissionDenied: false,
         });
-
-        setLocationLoading(false);
-      },
-      error => {
-        console.error('Error getting current position:', error);
-        setLocationLoading(false);
-        setProximityInfo(prev => ({...prev, checked: true}));
-        Alert.alert(
-          'Location Error',
-          'Unable to determine your current location. Location verification is required to post reviews.',
-        );
-      },
-      {enableHighAccuracy: true, timeout: 15000, maximumAge: 10000},
-    );
+      } else if (locationResult.status === 'permission_denied') {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: true,
+          errorMessage: locationResult.message,
+        });
+      } else {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: false,
+          errorMessage: locationResult.message,
+        });
+      }
+    } catch (err) {
+      console.error('Error checking location:', err);
+      setProximityInfo({
+        isNearby: false,
+        distanceInKm: 0,
+        checked: true,
+        permissionDenied: false,
+        errorMessage: 'Failed to check your location',
+      });
+    } finally {
+      setLocationLoading(false);
+    }
   };
 
   const fetchPlaceDetails = async () => {
@@ -192,13 +206,18 @@ export default function PlaceDetail() {
     }
   };
 
-  const navigateToPostReview = () => {
+  const navigateToPostReview = async () => {
     if (!place) {
       return;
     }
 
     if (!proximityInfo.checked) {
       checkUserLocation();
+      return;
+    }
+
+    if (proximityInfo.permissionDenied) {
+      promptOpenSettings();
       return;
     }
 
@@ -323,7 +342,7 @@ export default function PlaceDetail() {
             <Text style={styles.placeCategory}>{place.category}</Text>
             <Text style={styles.placeAddress}>{place.address}</Text>
 
-            {proximityInfo.checked && (
+            {proximityInfo.checked && !proximityInfo.permissionDenied && (
               <View
                 style={[
                   styles.locationStatusContainer,
@@ -342,6 +361,21 @@ export default function PlaceDetail() {
                     ? '✓ You are at this location'
                     : `You are ${proximityInfo.distanceInKm.toFixed(2)}km away`}
                 </Text>
+              </View>
+            )}
+
+            {proximityInfo.checked && proximityInfo.permissionDenied && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {backgroundColor: '#FEF3C7'},
+                ]}>
+                <Text style={[styles.locationStatusText, {color: '#D97706'}]}>
+                  ⚠️ {proximityInfo.errorMessage}
+                </Text>
+                {/* <TouchableOpacity onPress={retryLocationCheck}>
+                  <Text style={styles.retryLocationText}>Enable location</Text>
+                </TouchableOpacity> */}
               </View>
             )}
 
@@ -513,6 +547,14 @@ const styles = StyleSheet.create({
   locationStatusText: {
     fontSize: 14,
     fontWeight: '500',
+    flex: 1,
+  },
+  retryLocationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginLeft: 8,
+    textDecorationLine: 'underline',
   },
   descriptionContainer: {
     marginBottom: 20,
