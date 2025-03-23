@@ -112,4 +112,4 @@ Experience Vicinity's privacy-first review system through our app walkthrough:
 
 ## Acknowledgements
 
-Special thanks to [@madztheo](https://github.com/madztheo) for creating the react-native-noir-starter project which served as the foundation for Vicinity, and for providing guidance on key technical challenges during development.
+Special thanks to [@madztheo](https://github.com/madztheo) for creating the [react-native-noir-starter](https://github.com/madztheo/noir-react-native-starter) project which served as the foundation for Vicinity, and for providing guidance on key technical challenges during development.
