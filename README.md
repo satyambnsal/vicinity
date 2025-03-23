@@ -8,6 +8,46 @@ We built this using Noir, a language for zero-knowledge proofs, to create a circ
 For users, the experience is simple: find a place, tap to generate a proof (which happens entirely on your device), and submit your anonymous review. No personal data is stored or shared, yet everyone can trust that reviews come from people who were actually there.
 Vicinity demonstrates how advanced cryptography can solve real privacy problems in everyday apps while maintaining a seamless user experience.
 
+## Demo
+
+Experience Vicinity's privacy-first review system through our app walkthrough:
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
+  <div style="width: 24%;">
+    <img src="assets/images/1_home.png" width="100%" alt="Home Screen"/>
+    <p style="font-size: 0.8em;"><i>Home screen with verified anonymous reviews</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/2_expore_places.png" width="100%" alt="Explore Places"/>
+    <p style="font-size: 0.8em;"><i>Browse nearby locations privately</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/3_review_form.png" width="100%" alt="Review Form"/>
+    <p style="font-size: 0.8em;"><i>Share opinions anonymously</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/4_review_proof_generated.png" width="100%" alt="Proof Generation"/>
+    <p style="font-size: 0.8em;"><i>Zero-knowledge proof generation</i></p>
+  </div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 10px;">
+  <div style="width: 24%;">
+    <img src="assets/images/5_review_proof.png" width="100%" alt="Review with Proof"/>
+    <p style="font-size: 0.8em;"><i>Review with cryptographic proof</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/6_all_reviews.png" width="100%" alt="All Reviews"/>
+    <p style="font-size: 0.8em;"><i>Browse all verified reviews</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/7_view_proof.png" width="100%" alt="View Proof"/>
+    <p style="font-size: 0.8em;"><i>Examine proof details</i></p>
+  </div>
+  <div style="width: 24%;">
+    <img src="assets/images/8_verify_proof.png" width="100%" alt="Verify Proof"/>
+    <p style="font-size: 0.8em;"><i>Verify authenticity privately</i></p>
+  </div>
+</div>
 
 ## Core Features
 
