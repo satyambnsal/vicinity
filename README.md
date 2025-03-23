@@ -1,6 +1,8 @@
-# Vicinity - Private Location-Based Reviews
+# Vicinity: Anonymous reviews from verified visitors.
 
-Vicinity is sort of a Private Yelp, privacy-focused mobile application that demonstrates the potential of zero-knowledge proofs for location-based services. Users can post anonymous reviews for restaurants, landmarks, and attractions while cryptographically proving they visited the location - all without revealing their identity or exact whereabouts.
+**Vicinity: Privacy-first location reviews where users prove presence without revealing identity or exact coordinates – the private Yelp that lets you verify without exposing.**
+
+Vicinity is a privacy-focused mobile application that demonstrates the potential of zero-knowledge proofs for location-based services. Users can post anonymous reviews for restaurants, landmarks, and attractions while cryptographically proving they visited the location - all without revealing their identity or exact whereabouts.
 
 ## Core Features
 

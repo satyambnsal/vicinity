@@ -17,15 +17,15 @@ export default function Home() {
         />
         <Text style={styles.title}>Vicinity</Text>
         <Text style={styles.subtitle}>
-          Privacy-Preserving Location-Verified Reviews
+          Anonymous reviews from verified visitors.
         </Text>
       </View>
 
       <View style={styles.infoSection}>
         <Text style={styles.infoText}>
-          Vicinity enables you to anonymously share experiences at real-world
-          locations while cryptographically proving you were actually there,
-          protecting your privacy while ensuring authentic reviews.
+          Vicinity: Privacy-first location reviews where users prove presence
+          without revealing identity or exact coordinates – the private Yelp
+          that lets you verify without exposing.
         </Text>
       </View>
 
