@@ -1,37 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Text, View, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import MainLayout from '../layouts/MainLayout';
-// import Button from '../components/Button';
 import {useNavigation} from '@react-navigation/native';
 import {PlacesListNavigationProp} from '../types/navigation';
-import * as AppAttest from 'react-native-ios-appattest';
-import {Buffer} from 'react-native-buffer';
-import DeviceInfo from 'react-native-device-info';
-
 export default function Home() {
   const navigation = useNavigation<PlacesListNavigationProp>();
-  const [attestSupported, setAttestSupported] = useState<boolean>(false);
-
-  useEffect(() => {
-    // Check device capabilities
-    DeviceInfo.getDeviceToken().then(deviceToken => {});
-    AppAttest.attestationSupported().then(async supported => {
-      setAttestSupported(supported);
-      if (supported) {
-        try {
-          const newKeyId = await AppAttest.generateKeys();
-          const challengeHashBase64 = Buffer.from('abc123').toString('base64');
-          const attestationBase64 = await AppAttest.attestKeys(
-            newKeyId,
-            challengeHashBase64,
-          );
-        } catch (error) {
-          console.log('attest key error', error);
-        }
-      }
-    });
-  }, []);
 
   return (
     <MainLayout hideHeader>
@@ -86,42 +60,6 @@ export default function Home() {
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* <View style={styles.advancedSection}>
-        <Text style={styles.sectionTitle}>Advanced Features</Text>
-        <View style={styles.advancedButtons}>
-          <Button
-            onPress={() => navigation.navigate('ProductProof')}
-            style={styles.advancedButton}>
-            <Text style={styles.buttonText}>Proof of Product</Text>
-          </Button>
-
-          <Button
-            onPress={() => navigation.navigate('PedersenProof')}
-            style={styles.advancedButton}>
-            <Text style={styles.buttonText}>Pedersen Hash Proof</Text>
-          </Button>
-
-          <Button
-            onPress={() => navigation.navigate('Secp256r1Proof')}
-            style={styles.advancedButton}>
-            <Text style={styles.buttonText}>Secp256r1 Proof</Text>
-          </Button>
-
-          <Button
-            onPress={() => navigation.navigate('SupabaseTest')}
-            style={styles.advancedButton}>
-            <Text style={styles.buttonText}>Test Supabase</Text>
-          </Button>
-        </View>
-      </View> */}
-
-      {attestSupported && (
-        <View style={styles.statusSection}>
-          <Text style={styles.statusText}>✓ Device attestation supported</Text>
-        </View>
-      )}
-
       <TouchableOpacity
         style={styles.aboutButton}
         onPress={() => navigation.navigate('About')}>

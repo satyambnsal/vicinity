@@ -1,7 +1,0 @@
-[package]
-name = "pedersen"
-type = "bin"
-authors = ["Théo Madzou"]
-compiler_version = ">=0.30.0"
-
-[dependencies]
