@@ -30,6 +30,15 @@ import {
   getUserLocationAndDistance,
   promptOpenSettings,
 } from '../lib/location-utils';
+import {
+  pubkey_modulus_limbs,
+  redc_params_limbs,
+  signature_limbs,
+  base64_decode_offset,
+  full_data_length,
+  partial_data,
+  partial_hash,
+} from '../lib/noir-jwt-utils';
 
 const maxDistance = 80874049; // ~1km in scaled coordinates
 const userId = 'anonymous-' + Math.random().toString(36).substring(2, 9);
@@ -81,7 +90,11 @@ export default function PostReview() {
   });
 
   useEffect(() => {
-    setupCircuit(circuit as unknown as Circuit).then(id => setCircuitId(id));
+    console.log('setting up circuit');
+    setupCircuit(circuit as unknown as Circuit, true).then(id => {
+      setCircuitId(id);
+      console.log('circuit setup done');
+    });
     return () => {
       if (circuitId) {
         clearCircuit(circuitId);
@@ -183,6 +196,16 @@ export default function PostReview() {
           landmark_lat,
           landmark_lon,
           max_distance: maxDistance,
+          pubkey_modulus_limbs,
+          redc_params_limbs,
+          signature_limbs,
+          base64_decode_offset,
+          full_data_length,
+          partial_hash,
+          partial_data: {
+            len: partial_data.length,
+            storage: partial_data,
+          },
         },
         circuitId!,
       );
@@ -258,6 +281,7 @@ export default function PostReview() {
         vkey,
         circuitId,
       );
+      console.log('vkey new build', vkey);
 
       if (verified) {
         Alert.alert('Proof Verification', 'The ZK proximity proof is valid!');

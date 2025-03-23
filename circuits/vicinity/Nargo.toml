@@ -3,5 +3,7 @@ name = "vicinity"
 type = "bin"
 authors = ["Satyam Bansal"]
 compiler_version = ">=0.30.0"
+version = "1.0.0"
 
 [dependencies]
+jwt = { tag = "main", git = "https://github.com/saleel/noir-jwt" }
