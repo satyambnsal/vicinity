@@ -15,6 +15,12 @@ import {supabase} from '../lib/supabase';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Button from '../components/Button';
 import {PlacesListNavigationProp} from '../types/navigation';
+import {
+  getUserLocationAndDistance,
+  promptOpenSettings,
+  requestLocationPermission,
+} from '../lib/location-utils';
+import LocationProofVerifier from '../components/LocationProofVerifier';
 
 // Get screen dimensions for responsive design
 const {width} = Dimensions.get('window');
@@ -77,6 +83,7 @@ export const getTimeAgo = (dateString: string) => {
   const years = Math.floor(months / 12);
   return `${years} year${years !== 1 ? 's' : ''} ago`;
 };
+
 export default function PlaceDetail() {
   const [place, setPlace] = useState<Place | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -85,6 +92,19 @@ export default function PlaceDetail() {
   const [expandedReviews, setExpandedReviews] = useState<Set<string>>(
     new Set(),
   );
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [proximityInfo, setProximityInfo] = useState<{
+    isNearby: boolean;
+    distanceInKm: number;
+    checked: boolean;
+    permissionDenied: boolean;
+    errorMessage?: string;
+  }>({
+    isNearby: false,
+    distanceInKm: 0,
+    checked: false,
+    permissionDenied: false,
+  });
 
   const navigation = useNavigation<PlacesListNavigationProp>();
   const route = useRoute();
@@ -95,13 +115,70 @@ export default function PlaceDetail() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [place_id]);
 
+  useEffect(() => {
+    if (place && !proximityInfo.checked && !locationLoading) {
+      checkUserLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [place]);
+
+  const checkUserLocation = async () => {
+    if (!place) {
+      return;
+    }
+
+    setLocationLoading(true);
+
+    try {
+      const locationResult = await getUserLocationAndDistance(
+        place.latitude,
+        place.longitude,
+      );
+
+      if (locationResult.status === 'success' && locationResult.distanceInfo) {
+        setProximityInfo({
+          isNearby: locationResult.distanceInfo.isNearby,
+          distanceInKm: locationResult.distanceInfo.distanceInKm,
+          checked: true,
+          permissionDenied: false,
+        });
+      } else if (locationResult.status === 'permission_denied') {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: true,
+          errorMessage: locationResult.message,
+        });
+      } else {
+        setProximityInfo({
+          isNearby: false,
+          distanceInKm: 0,
+          checked: true,
+          permissionDenied: false,
+          errorMessage: locationResult.message,
+        });
+      }
+    } catch (err) {
+      console.error('Error checking location:', err);
+      setProximityInfo({
+        isNearby: false,
+        distanceInKm: 0,
+        checked: true,
+        permissionDenied: false,
+        errorMessage: 'Failed to check your location',
+      });
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
   const fetchPlaceDetails = async () => {
     setLoading(true);
     setError(null);
 
     try {
       // Fetch place details
-      console.log('FETCHING PLACE OF PLACE ID', place_id);
       const {data: placeData, error: placeError} = await supabase
         .from('places')
         .select('*')
@@ -130,14 +207,38 @@ export default function PlaceDetail() {
     }
   };
 
-  const navigateToPostReview = () => {
-    if (place) {
-      navigation.navigate('PostReview', {
-        place_id: place.place_id,
-        placeName: place.name,
-        latitude: place.latitude,
-        longitude: place.longitude,
-      });
+  const navigateToPostReview = async () => {
+    if (!place) {
+      return;
+    }
+
+    if (proximityInfo.permissionDenied) {
+      promptOpenSettings();
+      return;
+    }
+
+    navigation.navigate('PostReview', {
+      place_id: place.place_id,
+      placeName: place.name,
+      latitude: place.latitude,
+      longitude: place.longitude,
+    });
+    // }
+  };
+
+  const retryLocationCheck = async () => {
+    const permissionResult = await requestLocationPermission();
+
+    if (permissionResult.granted) {
+      setProximityInfo(prev => ({
+        ...prev,
+        checked: false,
+        permissionDenied: false,
+      }));
+      checkUserLocation();
+    } else {
+      // Either permission denied or location services are off
+      promptOpenSettings(!permissionResult.locationServicesEnabled);
     }
   };
 
@@ -186,8 +287,6 @@ export default function PlaceDetail() {
     }
   };
 
-  // Calculate time ago from date
-
   // Render star rating
   const renderRating = (rating: number) => {
     const stars = [];
@@ -229,7 +328,9 @@ export default function PlaceDetail() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.placeHeader}>
           <Image
-            source={{uri: place.image_url}}
+            source={{
+              uri: `https://oqymtqolwjujkayjyxdt.supabase.co/storage/v1/object/public/places//${place_id}.jpg`,
+            }}
             style={styles.placeImage}
             resizeMode="cover"
           />
@@ -237,6 +338,60 @@ export default function PlaceDetail() {
             <Text style={styles.placeName}>{place.name}</Text>
             <Text style={styles.placeCategory}>{place.category}</Text>
             <Text style={styles.placeAddress}>{place.address}</Text>
+
+            {proximityInfo.checked && !proximityInfo.permissionDenied && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {
+                    backgroundColor: proximityInfo.isNearby
+                      ? '#ECFDF5'
+                      : '#FEF2F2',
+                  },
+                ]}>
+                <Text
+                  style={[
+                    styles.locationStatusText,
+                    {color: proximityInfo.isNearby ? '#059669' : '#EF4444'},
+                  ]}>
+                  {proximityInfo.isNearby
+                    ? '✓ You are at this location'
+                    : `You are ${proximityInfo.distanceInKm.toFixed(2)}km away`}
+                </Text>
+              </View>
+            )}
+
+            {proximityInfo.checked && proximityInfo.permissionDenied && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {backgroundColor: '#FEF3C7'},
+                ]}>
+                <Text style={[styles.locationStatusText, {color: '#D97706'}]}>
+                  ⚠️ {proximityInfo.errorMessage}
+                </Text>
+                <TouchableOpacity onPress={retryLocationCheck}>
+                  <Text style={styles.retryLocationText}>Enable location</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {locationLoading && (
+              <View
+                style={[
+                  styles.locationStatusContainer,
+                  {backgroundColor: '#F0F9FF'},
+                ]}>
+                <ActivityIndicator
+                  size="small"
+                  color="#3B82F6"
+                  style={{marginRight: 8}}
+                />
+                <Text style={[styles.locationStatusText, {color: '#0369A1'}]}>
+                  Checking your location...
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -250,7 +405,10 @@ export default function PlaceDetail() {
         <View style={styles.reviewsSection}>
           <View style={styles.reviewsHeader}>
             <Text style={styles.reviewsTitle}>Reviews ({reviews.length})</Text>
-            <Button onPress={navigateToPostReview} style={styles.reviewButton}>
+            <Button
+              onPress={navigateToPostReview}
+              style={styles.reviewButton}
+              disabled={locationLoading}>
               <Text style={styles.buttonText}>Post a Review</Text>
             </Button>
           </View>
@@ -299,6 +457,10 @@ export default function PlaceDetail() {
                   <View style={styles.proofBadge}>
                     <Text style={styles.proofText}>Location Verified</Text>
                   </View>
+                  <LocationProofVerifier
+                    proof={review.location_proof}
+                    placeName={place.name}
+                  />
                 </View>
 
                 <View style={styles.reviewFooter}>
@@ -353,7 +515,7 @@ const styles = StyleSheet.create({
   },
   placeImage: {
     width: '100%',
-    height: 200,
+    height: 300,
     borderRadius: 12,
   },
   placeInfo: {
@@ -374,6 +536,26 @@ const styles = StyleSheet.create({
   placeAddress: {
     fontSize: 14,
     color: '#64748B',
+    marginBottom: 10,
+  },
+  locationStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  locationStatusText: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  retryLocationText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
+    marginLeft: 8,
+    textDecorationLine: 'underline',
   },
   descriptionContainer: {
     marginBottom: 20,
