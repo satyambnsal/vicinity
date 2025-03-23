@@ -42,7 +42,6 @@ export default function RecentReviews() {
     fetchReviews();
     Geolocation.requestAuthorization(
       () => {
-        console.log('Geolocation authorization successful');
         Geolocation.getCurrentPosition(info => console.log(info));
       },
       error => {

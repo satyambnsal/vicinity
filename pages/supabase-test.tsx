@@ -28,14 +28,10 @@ export default function SupabaseTest() {
   >('untested');
 
   const testConnection = async () => {
-    console.log('SUPABASE outer outer');
     setLoading(true);
     setError(null);
-    console.log('SUPABASE outer', supabase);
 
     try {
-      console.log('SUPABASE inner', supabase);
-
       const {data, error: queryError} = await supabase
         .from('signup_emails')
         .select('*')

@@ -42,8 +42,8 @@ export function calculateDistance(
   const lat2Rad = toRadians(currentLocation.lat);
   const lon2Rad = toRadians(currentLocation.long);
 
-  console.log('source', source);
-  console.log('currentLocation', currentLocation);
+  // console.log('source', source);
+  // console.log('currentLocation', currentLocation);
 
   // Differences in coordinates
   const dLat = lat2Rad - lat1Rad;

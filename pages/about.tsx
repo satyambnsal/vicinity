@@ -9,7 +9,6 @@ import {
   Linking,
 } from 'react-native';
 import MainLayout from '../layouts/MainLayout';
-import Icon from 'react-native-vector-icons/Feather';
 import {COLORS, SPACING} from '../lib/theme';
 
 const FeatureItem = ({
@@ -182,12 +181,6 @@ export default function About() {
             onPress={() =>
               Linking.openURL('https://github.com/satyambnsal/vicinity')
             }>
-            <Icon
-              name="github"
-              size={20}
-              color={COLORS.paper}
-              style={styles.githubIcon}
-            />
             <Text style={styles.githubText}>View Project on GitHub</Text>
           </TouchableOpacity>
 

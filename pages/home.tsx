@@ -15,9 +15,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check device capabilities
-    DeviceInfo.getDeviceToken().then(deviceToken => {
-      console.log('Device token', deviceToken);
-    });
+    DeviceInfo.getDeviceToken().then(deviceToken => {});
     AppAttest.attestationSupported().then(async supported => {
       setAttestSupported(supported);
       if (supported) {
@@ -28,7 +26,6 @@ export default function Home() {
             newKeyId,
             challengeHashBase64,
           );
-          console.log('Attestation created', attestationBase64);
         } catch (error) {
           console.log('attest key error', error);
         }
