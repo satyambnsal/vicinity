@@ -2,7 +2,12 @@
 
 **Vicinity: Privacy-first location reviews where users prove presence without revealing identity or exact coordinates – the private Yelp that lets you verify without exposing.**
 
-Vicinity is a privacy-focused mobile application that demonstrates the potential of zero-knowledge proofs for location-based services. Users can post anonymous reviews for restaurants, landmarks, and attractions while cryptographically proving they visited the location - all without revealing their identity or exact whereabouts.
+Vicinity is a mobile app that reimagines location-based reviews with privacy at its core. Think of it as a "privacy-first Yelp" where users can post anonymous reviews while cryptographically proving they actually visited the location.
+When you want to review a restaurant or landmark, Vicinity uses your current location (with permission) to generate a zero-knowledge proof. This proof verifies you're near the location without revealing your exact coordinates or identity. The proof is attached to your review, allowing others to trust its authenticity while you remain completely anonymous.
+We built this using Noir, a language for zero-knowledge proofs, to create a circuit that verifies proximity without exposing sensitive data. The app also uses JWT verification to ensure proofs can only be generated from the official Vicinity app, preventing potential abuse.
+For users, the experience is simple: find a place, tap to generate a proof (which happens entirely on your device), and submit your anonymous review. No personal data is stored or shared, yet everyone can trust that reviews come from people who were actually there.
+Vicinity demonstrates how advanced cryptography can solve real privacy problems in everyday apps while maintaining a seamless user experience.
+
 
 ## Core Features
 
@@ -18,6 +23,45 @@ Vicinity is a privacy-focused mobile application that demonstrates the potential
 - **Mobile Integration**: UltraHonk prover with locally cached SRS for efficient mobile proving
 - **Location Services**: Uses @react-native-community/geolocation (requires one-time permission)
 - **Data Storage**: Supabase for storing anonymous reviews (no user details retained)
+
+
+# How it's made
+
+* **Mobile Application Stack**
+  * Built with React Native for cross-platform compatibility (iOS/Android)
+  * Uses @react-native-community/geolocation for precise location data acquisition
+
+* **Zero-Knowledge Proof System**
+  * Developed custom Noir circuit (68,902 gates) handling location proximity verification
+  * Implemented using Noir 1.0.0-beta.2 with Barretenberg 0.76.4 as the proving backend
+  * Utilizes fixed-point arithmetic to handle geographic coordinates (latitude/longitude)
+
+* **JWT Authentication & Security**
+  * Employs noir-jwt library to verify request authenticity directly within the ZK circuit
+  * Implements partial SHA hashing optimization to reduce circuit complexity
+  * JWT verification ensures proofs can only be generated from the official Vicinity ios app
+
+* **Mobile-Optimized Proving**
+  * Integrated UltraHonk prover for efficient proof generation on resource-constrained devices
+  * Locally caches Structured Reference String (SRS) to eliminate network dependencies
+  * Optimized memory usage to work within mobile device constraints
+  * Proof generation time kept under 3 seconds for smooth user experience
+
+* **Geospatial Innovation**
+  * Developed coordinate scaling system to handle floating-point coordinates in the integer-only Noir environment
+  * Formula: `Math.round((coordinate + 90) * 1e6)` converts to fixed-point representation
+  * Implements distance threshold verification without revealing exact coordinates
+  * Created landmark database with precisely scaled reference coordinates
+
+* **Developer Experience**
+  * Built upon react-native-noir-starter boilerplate to accelerate development
+  * Implemented robust error handling for location permission issues
+  * Designed extensible architecture allowing for future circuit optimizations
+
+* **Key Challenges Overcome**
+  * Working around gate count contraints for mobile device 
+  * Solved floating-point representation issues in Noir's integer-only environment
+  * Optimized circuit to maintain reasonable proving times on mobile devices
 
 ## How It Works
 
