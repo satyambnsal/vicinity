@@ -223,7 +223,6 @@ export default function PlaceDetail() {
       latitude: place.latitude,
       longitude: place.longitude,
     });
-    // }
   };
 
   const retryLocationCheck = async () => {
@@ -334,7 +333,16 @@ export default function PlaceDetail() {
             style={styles.placeImage}
             resizeMode="cover"
           />
+
           <View style={styles.placeInfo}>
+            <View style={styles.infoHeader}>
+              <Button
+                onPress={navigateToPostReview}
+                style={styles.postReviewButton}
+                disabled={locationLoading}>
+                <Text style={styles.buttonText}>Post a Review</Text>
+              </Button>
+            </View>
             <Text style={styles.placeName}>{place.name}</Text>
             <Text style={styles.placeCategory}>{place.category}</Text>
             <Text style={styles.placeAddress}>{place.address}</Text>
@@ -405,12 +413,6 @@ export default function PlaceDetail() {
         <View style={styles.reviewsSection}>
           <View style={styles.reviewsHeader}>
             <Text style={styles.reviewsTitle}>Reviews ({reviews.length})</Text>
-            <Button
-              onPress={navigateToPostReview}
-              style={styles.reviewButton}
-              disabled={locationLoading}>
-              <Text style={styles.buttonText}>Post a Review</Text>
-            </Button>
           </View>
 
           {reviews.length === 0 ? (
@@ -512,14 +514,32 @@ const styles = StyleSheet.create({
   },
   placeHeader: {
     marginBottom: 20,
+    position: 'relative',
   },
   placeImage: {
     width: '100%',
     height: 300,
     borderRadius: 12,
   },
+
   placeInfo: {
     padding: 15,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  placeDetails: {
+    flex: 1,
+    marginRight: 10,
+  },
+  postReviewButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#10B981',
+    borderRadius: 8,
   },
   placeName: {
     fontSize: 24,
@@ -579,17 +599,14 @@ const styles = StyleSheet.create({
   },
   reviewsHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 15,
-    flexWrap: 'wrap',
   },
   reviewsTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
     marginRight: 10,
-    marginBottom: 5,
   },
   reviewButton: {
     paddingHorizontal: 12,
