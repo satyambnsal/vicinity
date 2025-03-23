@@ -10,6 +10,8 @@ Vicinity demonstrates how advanced cryptography can solve real privacy problems 
 
 ## Demo
 
+Watch our demo video: [Vicinity Demo on YouTube](https://www.youtube.com/shorts/wCjCrI-eCCo)
+
 Experience Vicinity's privacy-first review system through our app walkthrough:
 
 <p align="center">
