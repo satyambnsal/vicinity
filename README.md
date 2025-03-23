@@ -12,42 +12,31 @@ Vicinity demonstrates how advanced cryptography can solve real privacy problems 
 
 Experience Vicinity's privacy-first review system through our app walkthrough:
 
-<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;">
-  <div style="width: 24%;">
-    <img src="assets/images/1_home.png" width="100%" alt="Home Screen"/>
-    <p style="font-size: 0.8em;"><i>Home screen with verified anonymous reviews</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/2_expore_places.png" width="100%" alt="Explore Places"/>
-    <p style="font-size: 0.8em;"><i>Browse nearby locations privately</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/3_review_form.png" width="100%" alt="Review Form"/>
-    <p style="font-size: 0.8em;"><i>Share opinions anonymously</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/4_review_proof_generated.png" width="100%" alt="Proof Generation"/>
-    <p style="font-size: 0.8em;"><i>Zero-knowledge proof generation</i></p>
-  </div>
-</div>
-<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 10px;">
-  <div style="width: 24%;">
-    <img src="assets/images/5_review_proof.png" width="100%" alt="Review with Proof"/>
-    <p style="font-size: 0.8em;"><i>Review with cryptographic proof</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/6_all_reviews.png" width="100%" alt="All Reviews"/>
-    <p style="font-size: 0.8em;"><i>Browse all verified reviews</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/7_view_proof.png" width="100%" alt="View Proof"/>
-    <p style="font-size: 0.8em;"><i>Examine proof details</i></p>
-  </div>
-  <div style="width: 24%;">
-    <img src="assets/images/8_verify_proof.png" width="100%" alt="Verify Proof"/>
-    <p style="font-size: 0.8em;"><i>Verify authenticity privately</i></p>
-  </div>
-</div>
+<p align="center">
+  <img src="assets/images/1_home.png" width="200" alt="Home Screen">
+  <img src="assets/images/2_expore_places.png" width="200" alt="Explore Places">
+  <img src="assets/images/3_review_form.png" width="200" alt="Review Form">
+  <img src="assets/images/4_review_proof_generated.png" width="200" alt="Proof Generation">
+</p>
+<p align="center">
+  <em>Home screen</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>Browse nearby locations</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>Share opinions</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>ZK proof generation</em>
+</p>
+
+<p align="center">
+  <img src="assets/images/5_review_proof.png" width="200" alt="Review with Proof">
+  <img src="assets/images/6_all_reviews.png" width="200" alt="All Reviews">
+  <img src="assets/images/7_view_proof.png" width="200" alt="View Proof">
+  <img src="assets/images/8_verify_proof.png" width="200" alt="Verify Proof">
+</p>
+<p align="center">
+  <em>Review with proof</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>Browse all reviews</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>Examine proof details</em> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <em>Verify authenticity</em>
+</p>
 
 ## Core Features
 
